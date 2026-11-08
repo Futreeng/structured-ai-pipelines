@@ -114,7 +114,7 @@ export default async function DashboardPage() {
                 <div className="mb-1 text-xs font-bold uppercase tracking-widest text-orange-400">Step 1</div>
                 <h3 className="mb-2 font-semibold text-zinc-100">You describe the work</h3>
                 <p className="text-sm leading-6 text-zinc-400">
-                  Paste a feature spec, bug report, or upload a markdown file. Add your repo URL (GitHub, GitLab, or Bitbucket). That's it — Forge handles the rest.
+                  Paste a feature spec, bug report, or upload a markdown file. Add your repo URL (GitHub). That's it — Forge handles the rest.
                 </p>
               </div>
 
@@ -136,7 +136,7 @@ export default async function DashboardPage() {
                 <div className="mb-1 text-xs font-bold uppercase tracking-widest text-emerald-400">Step 3</div>
                 <h3 className="mb-2 font-semibold text-zinc-100">You review &amp; approve</h3>
                 <p className="text-sm leading-6 text-zinc-400">
-                  You see the plan before any code is written, and the diff before anything is pushed. Approve both gates and Forge opens a merge request on a clean branch.
+                  You see the plan before any code is written, and the diff before anything is pushed. Approve both gates and Forge opens a pull request on a clean branch.
                 </p>
               </div>
             </div>
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
                 '→ Auto-fix if needed',
                 'Approve plan',
                 'Approve diff',
-                'Open merge request',
+                'Open pull request',
               ].map((step, i) => (
                 <span key={i} className={`flex items-center gap-2 ${step.startsWith('→') ? 'text-amber-500/70' : ''}`}>
                   {i > 0 && !step.startsWith('→') && <span className="text-zinc-700">·</span>}
@@ -175,7 +175,7 @@ export default async function DashboardPage() {
                   Give Forge a feature spec — a markdown doc, pasted text, or uploaded file — plus your repo URL. It generates a full implementation: code, tests, Dockerfile, and CI config.
                 </p>
                 <ul className="space-y-1.5 text-zinc-400">
-                  {['Analyzes your existing code conventions', 'Generates repo-aware implementation', 'Runs build verification + auto-fix loop', 'Creates branch + merge request'].map(item => (
+                  {['Analyzes your existing code conventions', 'Generates repo-aware implementation', 'Runs build verification + auto-fix loop', 'Creates branch + pull request'].map(item => (
                     <li key={item} className="flex items-center gap-2">
                       <span className="h-1 w-1 rounded-full bg-orange-500/60" />
                       {item}
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
                   Describe a bug and paste any error logs or stack traces. Forge maps your codebase, identifies the root cause, plans the fix, and generates a targeted patch — no guessing.
                 </p>
                 <ul className="space-y-1.5 text-zinc-400">
-                  {['Maps affected files and call paths', 'Root cause analysis with evidence', 'Targeted fix — smallest safe change', 'Creates branch + merge request'].map(item => (
+                  {['Maps affected files and call paths', 'Root cause analysis with evidence', 'Targeted fix — smallest safe change', 'Creates branch + pull request'].map(item => (
                     <li key={item} className="flex items-center gap-2">
                       <span className="h-1 w-1 rounded-full bg-cyan-500/60" />
                       {item}

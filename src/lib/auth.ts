@@ -1,21 +1,16 @@
 import { NextAuthOptions } from 'next-auth';
-import GitLabProvider from 'next-auth/providers/gitlab';
+import GitHubProvider from 'next-auth/providers/github';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/src/lib/prisma';
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma) as NextAuthOptions['adapter'],
   providers: [
-    GitLabProvider({
-      clientId: process.env.GITLAB_CLIENT_ID!,
-      clientSecret: process.env.GITLAB_CLIENT_SECRET!,
-      authorization: {
-        url: `${process.env.GITLAB_BASE_URL}/oauth/authorize`,
-        params: { scope: 'read_user' },
-      },
-      token: `${process.env.GITLAB_BASE_URL}/oauth/token`,
-      userinfo: `${process.env.GITLAB_BASE_URL}/api/v4/user`,
-      checks: ['state'],
+    GitHubProvider({
+      clientId: process.env.GITHUB_CLIENT_ID!,
+      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
+      // `repo` lets Forge push branches and open pull requests on the user's behalf.
+      authorization: { params: { scope: 'read:user user:email repo' } },
     }),
   ],
   session: {

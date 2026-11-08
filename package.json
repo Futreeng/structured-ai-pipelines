@@ -70,5 +70,8 @@
   },
   "overrides": {
     "whatwg-encoding": "@exodus/bytes"
+  },
+  "allowScripts": {
+    "prisma@7.7.0": true
   }
 }

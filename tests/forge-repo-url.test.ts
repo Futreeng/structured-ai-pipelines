@@ -1,44 +1,44 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import { validateGitLabRepoUrl } from '../src/services/forge/utils/repo'
+import { validateGitHubRepoUrl } from '../src/services/forge/utils/repo'
 
-describe('Forge GitLab repo URL validation', () => {
-  const originalAllowedHosts = process.env.GITLAB_ALLOWED_HOSTS
+describe('Forge GitHub repo URL validation', () => {
+  const originalAllowedHosts = process.env.GITHUB_ALLOWED_HOSTS
 
   afterEach(() => {
     if (originalAllowedHosts === undefined) {
-      delete process.env.GITLAB_ALLOWED_HOSTS
+      delete process.env.GITHUB_ALLOWED_HOSTS
     } else {
-      process.env.GITLAB_ALLOWED_HOSTS = originalAllowedHosts
+      process.env.GITHUB_ALLOWED_HOSTS = originalAllowedHosts
     }
   })
 
-  it('accepts GitLab HTTPS URLs with nested groups', () => {
-    expect(validateGitLabRepoUrl('https://gitlab.com/group/subgroup/project.git')).toBe(
-      'https://gitlab.com/group/subgroup/project.git',
+  it('accepts GitHub HTTPS URLs', () => {
+    expect(validateGitHubRepoUrl('https://github.com/owner/project.git')).toBe(
+      'https://github.com/owner/project.git',
     )
   })
 
-  it('accepts configured self-hosted GitLab hosts', () => {
-    process.env.GITLAB_ALLOWED_HOSTS = 'git.example.com'
+  it('accepts configured GitHub Enterprise hosts', () => {
+    process.env.GITHUB_ALLOWED_HOSTS = 'git.example.com'
 
-    expect(validateGitLabRepoUrl('https://git.example.com/team/project')).toBe(
+    expect(validateGitHubRepoUrl('https://git.example.com/team/project')).toBe(
       'https://git.example.com/team/project',
     )
   })
 
   it('rejects unsupported protocols and credentialed URLs', () => {
-    expect(() => validateGitLabRepoUrl('http://gitlab.com/group/project')).toThrow(/https/i)
-    expect(() => validateGitLabRepoUrl('ssh://git@gitlab.com/group/project')).toThrow(/https/i)
-    expect(() => validateGitLabRepoUrl('https://token@gitlab.com/group/project')).toThrow(/https/i)
+    expect(() => validateGitHubRepoUrl('http://github.com/owner/project')).toThrow(/https/i)
+    expect(() => validateGitHubRepoUrl('ssh://git@github.com/owner/project')).toThrow(/https/i)
+    expect(() => validateGitHubRepoUrl('https://token@github.com/owner/project')).toThrow(/https/i)
   })
 
-  it('rejects private/local hosts and public hosts outside the GitLab allowlist', () => {
-    expect(() => validateGitLabRepoUrl('https://localhost/group/project')).toThrow(/gitlab repo url/i)
-    expect(() => validateGitLabRepoUrl('https://127.0.0.1/group/project')).toThrow(/gitlab repo url/i)
-    expect(() => validateGitLabRepoUrl('https://github.com/group/project')).toThrow(/gitlab repo url/i)
+  it('rejects private/local hosts and public hosts outside the GitHub allowlist', () => {
+    expect(() => validateGitHubRepoUrl('https://localhost/owner/project')).toThrow(/github repository/i)
+    expect(() => validateGitHubRepoUrl('https://127.0.0.1/owner/project')).toThrow(/github repository/i)
+    expect(() => validateGitHubRepoUrl('https://gitlab.com/owner/project')).toThrow(/github repository/i)
   })
 
-  it('requires a group and project path', () => {
-    expect(() => validateGitLabRepoUrl('https://gitlab.com/group')).toThrow(/group and project/i)
+  it('requires an owner and repository path', () => {
+    expect(() => validateGitHubRepoUrl('https://github.com/owner')).toThrow(/owner and repository/i)
   })
 })
