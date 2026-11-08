@@ -3,6 +3,7 @@ import { prisma } from '@/src/lib/prisma';
 import { decryptApiKey } from '@/src/lib/encryption';
 import { createOllamaClient, isOllamaAvailable } from '@/src/lib/ollama-client';
 import { createGroqCompatClient, isGroqAvailable } from '@/src/lib/groq-client';
+import { assertNotRefused, ClaudeRefusalError, type ClaudeEffort } from '@/src/lib/models';
 
 // Track if Anthropic API is known to be out of credits
 let anthropicDisabled = false;
@@ -129,11 +130,15 @@ export async function createWithFallback(
     max_tokens: number;
     system: string;
     messages: Anthropic.MessageParam[];
+    output_config?: { effort: ClaudeEffort };
   }
 ): Promise<Anthropic.Message> {
   try {
-    return await client.messages.create(params);
+    const response = await client.messages.create(params);
+    assertNotRefused(response);
+    return response;
   } catch (err: unknown) {
+    if (err instanceof ClaudeRefusalError) throw err;
     const status = (err as { status?: number })?.status;
     const msg = (err as { message?: string })?.message || '';
 

@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { SkillLoader } from '@/src/services/skill-loader';
 import { handleAnthropicCreditError } from '@/src/lib/anthropic';
 import { type TokenUsage } from '@/src/services/cost-tracker';
+import { assertNotRefused, CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 export class StageExecutor {
   private client: Anthropic;
@@ -39,8 +40,9 @@ export class StageExecutor {
     let usedOllama = false;
 
     const streamParams = {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 16000,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages,
     };
@@ -87,6 +89,10 @@ export class StageExecutor {
         // Capture usage from message_delta event (output tokens)
         if (event.type === 'message_delta' && event.usage) {
           outputTokens = event.usage.output_tokens || 0;
+        }
+        // Claude 5 models can decline a request mid-stream
+        if (event.type === 'message_delta') {
+          assertNotRefused(event.delta as { stop_reason?: string | null; stop_details?: unknown });
         }
       }
     } catch (err: unknown) {
@@ -137,7 +143,7 @@ export class StageExecutor {
       model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
       backend = 'ollama';
     } else {
-      model = 'claude-sonnet-4-20250514';
+      model = CLAUDE_MODELS.main;
       backend = 'anthropic';
     }
 

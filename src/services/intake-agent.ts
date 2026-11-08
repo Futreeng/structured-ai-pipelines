@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { type ExecutionPlan, type DAGNode } from '@/src/types/dag';
 import { DAGExecutor } from '@/src/services/dag-executor';
 import { createWithFallback } from '@/src/lib/anthropic';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 const SKILL_DISPLAY_NAMES: Record<string, string> = {
   'prd-architect': 'PRD Generation',
@@ -175,8 +176,9 @@ export class IntakeAgent {
       : '';
 
     const response = await createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: INTAKE_SYSTEM_PROMPT,
       messages: [
         {

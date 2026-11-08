@@ -1,6 +1,7 @@
 import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib/anthropic'
 import { SkillLoader } from '@/src/services/skill-loader'
 import type { LaunchAssessment } from './launcher-agent'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 export interface FinisherResult {
   summary: string
@@ -68,8 +69,9 @@ export async function finishLaunchReadiness(opts: {
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 16000,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { SkillLoader } from '@/src/services/skill-loader';
+import { assertNotRefused, CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 export interface LearningResource {
   title: string;
@@ -63,8 +64,9 @@ export class EducatorAgent {
     console.log(`[EducatorAgent] Analyzing decisions from stage: ${stageName}`);
 
     const response = await client.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [
         {
@@ -73,6 +75,7 @@ export class EducatorAgent {
         },
       ],
     });
+    assertNotRefused(response);
 
     const text = response.content
       .filter((block) => block.type === 'text')

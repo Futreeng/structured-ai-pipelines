@@ -3,6 +3,7 @@ import type { ImplementationManifest } from '../types/manifest'
 import type { ManifestFile } from '../types/manifest'
 import type { ConventionsProfile } from '../types/conventions'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are an implementation planner. Given a PRD and repo conventions, generate an ordered file manifest for implementation.
 
@@ -105,8 +106,9 @@ export async function generateManifest(opts: {
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

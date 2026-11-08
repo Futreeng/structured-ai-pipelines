@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { prisma } from '@/src/lib/prisma';
 import { createWithFallback } from '@/src/lib/anthropic';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 const DECISION_SYSTEM_PROMPT = `You are a decision agent in the Gauntlet Forge pipeline. You analyze the current state of a project build and make a routing decision.
 
@@ -69,8 +70,9 @@ export class DecisionAgent {
     console.log(`[DecisionAgent] Making decision for stage ${stageId}: ${decisionPrompt.substring(0, 80)}`);
 
     const response = await createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 512,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 2048,
+      output_config: { effort: EFFORT.quick },
       system: DECISION_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: prompt }],
     });

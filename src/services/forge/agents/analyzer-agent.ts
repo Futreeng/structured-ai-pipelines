@@ -2,6 +2,7 @@ import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib
 import { ConventionsProfileSchema } from '../types/conventions'
 import type { ConventionsProfile } from '../types/conventions'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are a code convention analyzer. Your job is to analyze a repository's structure and code samples to detect its conventions and patterns.
 
@@ -40,8 +41,9 @@ export async function analyzeRepo(
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

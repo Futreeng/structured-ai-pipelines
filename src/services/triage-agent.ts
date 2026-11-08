@@ -3,6 +3,7 @@ import { type TriageDecision } from '@/src/types/dag';
 import { prisma } from '@/src/lib/prisma';
 import { createWithFallback } from '@/src/lib/anthropic';
 import { LearningStore } from '@/src/services/learning-store';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 const TRIAGE_SYSTEM_PROMPT = `You are the Gauntlet Forge Triage Agent. A build verification or stage execution has failed. Your job is to analyze the error and decide the best recovery action.
 
@@ -99,8 +100,9 @@ Analyze the error and decide: retry, reroute, or escalate?`;
     console.log(`[TriageAgent] Analyzing failure of "${stage.displayName}" (retry ${stage.retryCount}/${stage.maxRetries})`);
 
     const response = await createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1024,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 4096,
+      output_config: { effort: EFFORT.quick },
       system: TRIAGE_SYSTEM_PROMPT,
       messages: [{ role: 'user', content: prompt }],
     });

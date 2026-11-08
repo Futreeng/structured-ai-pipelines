@@ -3,6 +3,7 @@ import { SkillLoader } from '@/src/services/skill-loader'
 import type { ProjectType, VerifyResult } from '@/src/types/dag'
 import type { LaunchAssessment } from './launcher-agent'
 import { evaluateUsability } from './usability-agent'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 interface SandboxSnapshot {
   success: boolean
@@ -171,8 +172,9 @@ export async function evaluatePreviewReadiness(opts: {
 
     const response = await callWithRetry(() =>
       createWithFallback(client, {
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 4096,
+        model: CLAUDE_MODELS.main,
+        max_tokens: 8192,
+        output_config: { effort: EFFORT.pipeline },
         system: systemPrompt,
         messages: [{ role: 'user', content: userMessage }],
       })

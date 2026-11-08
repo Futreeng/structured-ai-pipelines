@@ -4,6 +4,7 @@ import { createWithFallback } from '@/src/lib/anthropic';
 import { TraceLogger } from '@/src/services/trace-logger';
 import { createHash } from 'crypto';
 import { SkillLoader } from '@/src/services/skill-loader';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 const CONFIDENCE_THRESHOLD = 0.80;
 
@@ -68,8 +69,9 @@ export class SentinelAgent {
     try {
       const systemPrompt = await SkillLoader.getSkillPromptAsync('sentinel-agent');
       const response = await createWithFallback(client, {
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        model: CLAUDE_MODELS.main,
+        max_tokens: 4096,
+        output_config: { effort: EFFORT.quick },
         system: systemPrompt,
         messages: [{ role: 'user', content: evalContext.join('\n\n---\n\n') }],
       });

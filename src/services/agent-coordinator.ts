@@ -5,6 +5,7 @@ import { TraceLogger } from '@/src/services/trace-logger';
 import { DecisionOption, DecisionResult } from '@/src/services/decision-agent';
 import { SkillLoader } from '@/src/services/skill-loader';
 import { CostTracker } from '@/src/services/cost-tracker';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 interface AgentSpec {
   role: string;
@@ -221,8 +222,9 @@ export class AgentCoordinator {
     try {
       const systemPrompt = await SkillLoader.getSkillPromptAsync(spec.skillName);
       const response = await createWithFallback(client, {
-        model: 'claude-haiku-4-5-20251001', // Use cheaper model for analysis agents
-        max_tokens: 512,
+        model: CLAUDE_MODELS.fast, // Use cheaper model for analysis agents
+        max_tokens: 2048,
+        output_config: { effort: EFFORT.quick },
         system: systemPrompt,
         messages: [{ role: 'user', content: context }],
       });
@@ -237,7 +239,7 @@ export class AgentCoordinator {
       const costUsd = CostTracker.calculateCost({
         inputTokens,
         outputTokens,
-        model: 'claude-haiku-4-5-20251001',
+        model: CLAUDE_MODELS.fast,
         backend: 'anthropic',
       });
       const durationMs = Date.now() - startTime;
