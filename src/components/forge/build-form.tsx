@@ -95,7 +95,7 @@ export default function BuildForm() {
           onClick={() => { setEntryMode('direct'); setSpecBuilt(false) }}
           className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
             entryMode === 'direct'
-              ? 'bg-zinc-800 text-zinc-100 shadow-sm'
+              ? 'bg-zinc-800 text-zinc-100 shadow-xs'
               : 'text-zinc-500 hover:text-zinc-300'
           }`}
         >
@@ -170,7 +170,7 @@ export default function BuildForm() {
             required
             rows={specBuilt ? 10 : 8}
             placeholder="Describe the feature you want to build..."
-            className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 resize-y font-mono text-sm"
+            className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 resize-y font-mono text-sm"
           />
         ) : (
           <div className="space-y-2">
@@ -215,7 +215,7 @@ export default function BuildForm() {
           onChange={e => setRepoUrl(e.target.value)}
           required
           placeholder="https://github.com/your-org/your-repo"
-          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
+          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
         />
       </div>
 
@@ -230,7 +230,7 @@ export default function BuildForm() {
           value={branchName}
           onChange={e => setBranchName(e.target.value)}
           placeholder="forge/my-feature"
-          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
+          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
         />
       </div>
 
@@ -250,7 +250,7 @@ export default function BuildForm() {
           role="switch"
           aria-checked={continuous}
           onClick={() => setContinuous(!continuous)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-amber-500/50 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
             continuous ? 'bg-amber-600' : 'bg-zinc-700'
           }`}
         >
@@ -269,7 +269,7 @@ export default function BuildForm() {
       <button
         type="submit"
         disabled={submitting}
-        className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 disabled:from-zinc-700 disabled:to-zinc-700 disabled:text-zinc-500 text-white font-semibold py-3 rounded-lg transition-all shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
+        className="w-full flex items-center justify-center gap-2 bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 disabled:from-zinc-700 disabled:to-zinc-700 disabled:text-zinc-500 text-white font-semibold py-3 rounded-lg transition-all shadow-lg shadow-orange-500/10 hover:shadow-orange-500/20"
       >
         {submitting ? (
           <Loader2 className="h-5 w-5 animate-spin" />

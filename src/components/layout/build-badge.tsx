@@ -39,7 +39,7 @@ export function BuildBadge() {
   const accessMode = readAccessMode()
 
   return (
-    <div className="fixed bottom-3 right-3 z-40 rounded-lg border border-orange-900/40 bg-zinc-950/85 px-3 py-2 text-[11px] text-zinc-300 shadow-lg backdrop-blur">
+    <div className="fixed bottom-3 right-3 z-40 rounded-lg border border-orange-900/40 bg-zinc-950/85 px-3 py-2 text-[11px] text-zinc-300 shadow-lg backdrop-blur-sm">
       <div className="font-semibold text-orange-300">Build</div>
       <div>
         <span className="text-zinc-500">deploy:</span> {deployEnv}

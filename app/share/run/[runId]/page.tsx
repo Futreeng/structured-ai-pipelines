@@ -38,7 +38,7 @@ export default async function SharedRunPage(
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
       <div className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mb-8 rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-zinc-900 to-zinc-950 p-8">
+        <div className="mb-8 rounded-2xl border border-orange-500/20 bg-linear-to-br from-orange-500/10 via-zinc-900 to-zinc-950 p-8">
           <div className="flex items-center gap-2 text-sm uppercase tracking-[0.25em] text-orange-300">
             <Rocket className="h-4 w-4" />
             Forge Share

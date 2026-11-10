@@ -128,7 +128,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
         <div className="flex items-center gap-2.5">
           <div className="relative">
             <Flame className="h-4 w-4 text-orange-500 flame-flicker" />
-            <div className="absolute inset-0 blur-sm opacity-50 text-orange-500">
+            <div className="absolute inset-0 blur-xs opacity-50 text-orange-500">
               <Flame className="h-4 w-4" />
             </div>
           </div>
@@ -193,7 +193,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
                 value={data.name}
                 onChange={(e) => update('name', e.target.value)}
                 placeholder="e.g. TaskFlow, BudgetBuddy, ShipFast"
-                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30"
+                className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30"
               />
             </div>
             <div>
@@ -233,7 +233,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
               value={data.audience}
               onChange={(e) => update('audience', e.target.value)}
               placeholder="e.g. Freelancers who struggle to track invoices and client payments. They're not technical and need something simple."
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
             />
           </div>
         )}
@@ -250,7 +250,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
               value={data.problem}
               onChange={(e) => update('problem', e.target.value)}
               placeholder="e.g. Right now they use spreadsheets and email threads to manage clients. It's messy, they lose track of unpaid invoices, and chasing payments feels awkward."
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
             />
           </div>
         )}
@@ -267,7 +267,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
               value={data.features}
               onChange={(e) => update('features', e.target.value)}
               placeholder={`Client list with contact details\nCreate and send invoices by email\nMark invoices as paid\nDashboard showing outstanding balance\nReminder notifications for overdue invoices`}
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none font-mono"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none font-mono"
             />
           </div>
         )}
@@ -311,7 +311,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
               value={data.extra}
               onChange={(e) => update('extra', e.target.value)}
               placeholder="e.g. Clean, minimal design — think Linear or Notion. No complex animations. Must work on mobile. I have a logo already."
-              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
+              className="w-full rounded-lg border border-zinc-700 bg-zinc-900/50 px-3 py-2.5 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-hidden focus:ring-2 focus:ring-orange-500/40 focus:border-orange-500/30 resize-none"
             />
           </div>
         )}
@@ -335,7 +335,7 @@ export default function SpecBuilder({ onComplete, onCancel }: SpecBuilderProps) 
             type="button"
             size="sm"
             onClick={() => onComplete(assemble())}
-            className="bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white border-0 shadow-lg shadow-orange-500/20"
+            className="bg-linear-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white border-0 shadow-lg shadow-orange-500/20"
           >
             <Sparkles className="mr-2 h-4 w-4" />
             Build My Spec

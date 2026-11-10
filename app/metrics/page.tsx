@@ -42,7 +42,7 @@ export default function MetricsPage() {
       <PageContainer>
         <div className="space-y-6">
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)]">
-            <Card className="border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 via-zinc-950 to-zinc-950">
+            <Card className="border-cyan-500/20 bg-linear-to-br from-cyan-500/10 via-zinc-950 to-zinc-950">
               <CardHeader>
                 <CardTitle className="text-lg">Operator Trust Dashboard</CardTitle>
               </CardHeader>
@@ -259,7 +259,7 @@ function PromptHealthPanel() {
           </div>
           <div className="relative h-4 rounded-full bg-zinc-800 overflow-hidden">
             <div
-              className={`absolute left-0 top-0 h-full rounded-full transition-all ${health.avgConfidence >= 80 ? 'bg-gradient-to-r from-emerald-600 to-emerald-400' : 'bg-gradient-to-r from-amber-600 to-amber-400'}`}
+              className={`absolute left-0 top-0 h-full rounded-full transition-all ${health.avgConfidence >= 80 ? 'bg-linear-to-r from-emerald-600 to-emerald-400' : 'bg-linear-to-r from-amber-600 to-amber-400'}`}
               style={{ width: `${health.avgConfidence}%` }}
             />
             <div className="absolute left-[80%] top-0 h-full w-0.5 bg-zinc-400/50" />
@@ -422,7 +422,7 @@ function AgentBreakdownPanel() {
             {/* Pass rate bar */}
             <div className="relative h-3 rounded-full bg-zinc-800 overflow-hidden">
               <div
-                className={`absolute left-0 top-0 h-full rounded-full transition-all ${data.guardianStats.passRate >= 80 ? 'bg-gradient-to-r from-cyan-600 to-cyan-400' : 'bg-gradient-to-r from-yellow-600 to-yellow-400'}`}
+                className={`absolute left-0 top-0 h-full rounded-full transition-all ${data.guardianStats.passRate >= 80 ? 'bg-linear-to-r from-cyan-600 to-cyan-400' : 'bg-linear-to-r from-yellow-600 to-yellow-400'}`}
                 style={{ width: `${data.guardianStats.passRate}%` }}
               />
             </div>
@@ -482,7 +482,7 @@ function AgentBreakdownPanel() {
                         </div>
                         <div className="h-1.5 rounded-full bg-zinc-800">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-red-600 to-red-400"
+                            className="h-full rounded-full bg-linear-to-r from-red-600 to-red-400"
                             style={{ width: `${barWidth}%` }}
                           />
                         </div>
@@ -515,7 +515,7 @@ function AgentBreakdownPanel() {
                         </div>
                         <div className="h-1.5 rounded-full bg-zinc-800">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400"
+                            className="h-full rounded-full bg-linear-to-r from-orange-500 to-amber-400"
                             style={{ width: `${width}%` }}
                           />
                         </div>

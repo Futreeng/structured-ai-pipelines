@@ -23,7 +23,7 @@ export function StageTimeChart({ stageDurations }: StageTimeChartProps) {
           <span className="text-xs text-muted-foreground w-36 truncate text-right">{name}</span>
           <div className="flex-1 h-5 bg-muted rounded-sm overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-sm transition-all"
+              className="h-full bg-linear-to-r from-blue-500 to-blue-600 rounded-sm transition-all"
               style={{ width: `${(duration / maxDuration) * 100}%` }}
             />
           </div>

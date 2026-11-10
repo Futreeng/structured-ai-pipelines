@@ -56,7 +56,7 @@ function CollapsibleCode({ language, code }: { language: string; code: string })
         style={oneDark}
         language={language}
         PreTag="div"
-        className="rounded-t-none rounded-b-lg text-sm !mt-0 border border-zinc-700/50 border-t-0"
+        className="rounded-t-none rounded-b-lg text-sm mt-0! border border-zinc-700/50 border-t-0"
         customStyle={{ margin: 0, borderTopLeftRadius: 0, borderTopRightRadius: 0 }}
       >
         {displayCode}
@@ -64,7 +64,7 @@ function CollapsibleCode({ language, code }: { language: string; code: string })
       {lineCount > 40 && (
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-zinc-500 hover:text-orange-400 bg-zinc-900/50 border border-t-0 border-zinc-700/50 rounded-b-lg transition-colors -mt-[1px]"
+          className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-zinc-500 hover:text-orange-400 bg-zinc-900/50 border border-t-0 border-zinc-700/50 rounded-b-lg transition-colors -mt-px"
         >
           {collapsed ? (
             <>

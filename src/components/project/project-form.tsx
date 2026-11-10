@@ -333,7 +333,7 @@ export function ProjectForm() {
                     className={cn(
                       'rounded-xl border p-4 text-left transition-all',
                       selected
-                        ? 'border-orange-500/40 bg-orange-500/10 shadow-sm shadow-orange-500/10'
+                        ? 'border-orange-500/40 bg-orange-500/10 shadow-xs shadow-orange-500/10'
                         : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700 hover:bg-zinc-900'
                     )}
                   >
@@ -665,7 +665,7 @@ export function ProjectForm() {
                 <div className="space-y-1">
                   <div className="h-2 rounded-full bg-zinc-800 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300"
+                      className="h-full rounded-full bg-linear-to-r from-orange-500 to-amber-400 transition-all duration-300"
                       style={{ width: `${Math.round((uploadProgress.current / uploadProgress.total) * 100)}%` }}
                     />
                   </div>
