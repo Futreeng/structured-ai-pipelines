@@ -1,0 +1,6 @@
+# Ruff settings for the gateway and engine (CI runs `ruff check gateway/` and `ruff check gateway/engine/`).
+target-version = "py312"
+
+[lint.flake8-bugbear]
+# FastAPI's dependency-injection markers are meant to be called in argument defaults.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Header", "fastapi.Security"]

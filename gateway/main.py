@@ -9,21 +9,19 @@ Responsibilities:
   - OpenAPI spec merging
 """
 
-import os
-import time
 import logging
+import os
 import secrets
+import time
 from collections import defaultdict
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import httpx
 import jwt
-from fastapi import FastAPI, HTTPException, Request, Response, Depends
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, JSONResponse, StreamingResponse
-from pydantic import BaseModel, Field
+from fastapi.responses import JSONResponse, RedirectResponse, StreamingResponse
 
 logger = logging.getLogger("gateway")
 
@@ -68,8 +66,8 @@ def create_token(user_id: str, email: str, name: str = "") -> str:
         "sub": user_id,
         "email": email,
         "name": name,
-        "iat": datetime.now(timezone.utc),
-        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRY_HOURS),
+        "iat": datetime.now(UTC),
+        "exp": datetime.now(UTC) + timedelta(hours=JWT_EXPIRY_HOURS),
     }
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
@@ -132,7 +130,7 @@ app.add_middleware(
 )
 
 # Shared HTTP client for proxying to engine
-_client: Optional[httpx.AsyncClient] = None
+_client: httpx.AsyncClient | None = None
 
 
 def get_engine_client() -> httpx.AsyncClient:
@@ -152,14 +150,14 @@ async def health():
         client = get_engine_client()
         resp = await client.get("/health")
         engine_health = resp.json() if resp.status_code == 200 else None
-    except Exception:
+    except (httpx.HTTPError, ValueError):  # unreachable engine or non-JSON body
         engine_health = None
 
     return {
         "status": "healthy",
         "gateway": True,
         "engine": engine_health,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -212,8 +210,8 @@ async def google_callback(code: str = ""):
     # Decode the ID token (skip verification for now — Google signed it)
     try:
         payload = jwt.decode(id_token_raw, options={"verify_signature": False})
-    except Exception:
-        raise HTTPException(400, "Failed to decode Google ID token")
+    except jwt.PyJWTError as e:
+        raise HTTPException(400, "Failed to decode Google ID token") from e
 
     email = payload.get("email", "")
     name = payload.get("name", email.split("@")[0])
@@ -313,7 +311,7 @@ async def _proxy_stream(
             async with client.stream("GET", path, headers=headers, params=params) as resp:
                 async for chunk in resp.aiter_bytes():
                     yield chunk
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - never let a proxy failure crash the stream
             logger.error("SSE proxy error: %s", e)
 
     return StreamingResponse(

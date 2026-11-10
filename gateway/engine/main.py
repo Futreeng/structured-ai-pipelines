@@ -10,16 +10,14 @@ This is the core compute service. It owns:
 The Gateway proxies public traffic here after auth + validation.
 """
 
-import os
-import asyncio
 import logging
+import os
 from contextlib import asynccontextmanager
-from typing import Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger("engine")
@@ -61,7 +59,7 @@ app.add_middleware(
 )
 
 # Shared HTTP client for proxying to the Next.js backend
-_client: Optional[httpx.AsyncClient] = None
+_client: httpx.AsyncClient | None = None
 
 
 def get_client() -> httpx.AsyncClient:
@@ -81,7 +79,7 @@ async def health():
         client = get_client()
         resp = await client.get("/api/metrics")
         nextjs_ok = resp.status_code == 200
-    except Exception:
+    except httpx.HTTPError:
         nextjs_ok = False
 
     return {
@@ -105,7 +103,7 @@ class ProjectCreate(BaseModel):
 
 class StageAction(BaseModel):
     feedback: str = Field("")
-    editedContent: Optional[str] = None
+    editedContent: str | None = None
 
 
 class FeedbackSubmit(BaseModel):
@@ -245,7 +243,7 @@ async def get_learning(request: Request):
 # ---------------------------------------------------------------------------
 # Proxy helpers
 # ---------------------------------------------------------------------------
-async def _proxy(request: Request, path: str, method: str = None) -> Response:
+async def _proxy(request: Request, path: str, method: str | None = None) -> Response:
     """Forward a request to the Next.js backend and return the response."""
     client = get_client()
     method = method or request.method
@@ -288,9 +286,9 @@ async def _proxy_stream(request: Request, path: str) -> StreamingResponse:
             ) as resp:
                 async for chunk in resp.aiter_bytes():
                     yield chunk
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - any mid-stream failure becomes an SSE error event
             logger.error("SSE proxy error: %s", e)
-            yield f"data: {{\"type\": \"error\", \"data\": {{\"message\": \"{str(e)}\"}}}}\n\n".encode()
+            yield f"data: {{\"type\": \"error\", \"data\": {{\"message\": \"{e!s}\"}}}}\n\n".encode()
 
     return StreamingResponse(
         event_generator(),
