@@ -3,10 +3,8 @@ import { getAuthenticatedUser, unauthorizedResponse } from '@/src/lib/auth-helpe
 import { prisma } from '@/src/lib/prisma';
 import { BuildSummary } from '@/src/services/build-summary';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

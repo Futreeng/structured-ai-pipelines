@@ -20,8 +20,9 @@ export const maxDuration = 60;
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { runId: string; nodeId: string } }
+  props: { params: Promise<{ runId: string; nodeId: string }> }
 ) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -1102,5 +1103,5 @@ function normalizeBuildError(raw: string): string {
     .replace(/\bat line \d+/gi, 'at line N')
     .replace(/\((\d+),\s*(\d+)\)/g, '(N,N)')
     .trim()
-    .slice(0, 500)
+    .slice(0, 500);
 }

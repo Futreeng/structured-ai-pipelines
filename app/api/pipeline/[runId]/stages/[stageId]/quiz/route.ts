@@ -5,8 +5,9 @@ import { EducatorAgent, type EducatorOutput } from '@/src/services/educator-agen
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { runId: string; stageId: string } }
+  props: { params: Promise<{ runId: string; stageId: string }> }
 ) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

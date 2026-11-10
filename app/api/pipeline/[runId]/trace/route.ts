@@ -3,10 +3,8 @@ import { getAuthenticatedUser, unauthorizedResponse } from '@/src/lib/auth-helpe
 import { TraceLogger } from '@/src/services/trace-logger';
 import { prisma } from '@/src/lib/prisma';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function GET(request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

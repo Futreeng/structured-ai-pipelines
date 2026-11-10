@@ -8,10 +8,8 @@ import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
 import { getForgeRunWithDetails, updateForgeRun, saveForgeRunResult } from '@/src/services/forge/db'
 import { publishToGitHub, getGitHubToken } from '@/src/services/forge/utils/publish'
 
-export async function POST(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<NextResponse> {
+export async function POST(_req: Request, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params
   const session = await getForgeSessionOrDemo()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

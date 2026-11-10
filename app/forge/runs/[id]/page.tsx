@@ -8,11 +8,12 @@ import { PageContainer } from '@/src/components/layout/page-container'
 import { Button } from '@/src/components/ui/button'
 import RunDetailView from './run-detail-view'
 
-export default async function ForgeRunDetailPage({
-  params,
-}: {
-  params: { id: string }
-}) {
+export default async function ForgeRunDetailPage(
+  props: {
+    params: Promise<{ id: string }>
+  }
+) {
+  const params = await props.params
   const session = await getForgeSessionOrDemo()
   if (!session?.user?.id) {
     notFound()

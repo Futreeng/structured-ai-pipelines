@@ -8,10 +8,11 @@ import { preparePreviewFiles, runPreviewPreflight } from '@/src/services/preview
 import { detectPreviewRuntimeBlocker, summarizePreviewRuntimeLogs } from '@/src/services/preview-runtime-guard';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: Request, { params }: Props) {
+export async function GET(_request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -97,7 +98,8 @@ export async function GET(_request: Request, { params }: Props) {
  * Returns a localhost URL that expires after 30 minutes.
  * Requires Docker to be available on the host.
  */
-export async function POST(_request: Request, { params }: Props) {
+export async function POST(_request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -229,7 +231,8 @@ export async function POST(_request: Request, { params }: Props) {
 /**
  * DELETE /api/projects/[id]/preview — Stop a running preview.
  */
-export async function DELETE(request: Request, { params }: Props) {
+export async function DELETE(request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

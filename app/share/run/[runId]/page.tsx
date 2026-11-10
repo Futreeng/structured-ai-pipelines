@@ -8,11 +8,12 @@ function clampScore(value: number): number {
   return Math.max(0, Math.min(100, Math.round(value)))
 }
 
-export default async function SharedRunPage({
-  params,
-}: {
-  params: { runId: string }
-}) {
+export default async function SharedRunPage(
+  props: {
+    params: Promise<{ runId: string }>
+  }
+) {
+  const params = await props.params
   const run = await prisma.pipelineRun.findUnique({
     where: { id: params.runId },
     select: { id: true, status: true, project: { select: { name: true } } },

@@ -2,10 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthenticatedUser, unauthorizedResponse } from '@/src/lib/auth-helpers';
 import { PipelineEngine } from '@/src/services/pipeline-engine';
 
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
