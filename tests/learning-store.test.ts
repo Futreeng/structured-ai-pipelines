@@ -117,7 +117,7 @@ describe('LearningStore.getWarningsFor', () => {
     expect(warnings).toEqual([]);
   });
 
-  it('queries only active patterns with rejectionCount >= 1', async () => {
+  it('queries active patterns: 3+ rejections never expire, 1-2 only if seen in the last 7 days', async () => {
     prisma.learningEntry.findMany.mockResolvedValue([]);
 
     await LearningStore.getWarningsFor('phase-builder');
@@ -128,12 +128,22 @@ describe('LearningStore.getWarningsFor', () => {
       where: {
         targetAgent: 'phase-builder',
         status: 'active',
-        rejectionCount: { gte: 1 },
+        OR: [
+          { rejectionCount: { gte: 3 } },
+          { rejectionCount: { gte: 1 } },
+        ],
       },
       orderBy: { rejectionCount: 'desc' },
       take: 10,
     });
-    expect(query.where.lastSeen.gte).toBeInstanceOf(Date);
+
+    // The low-count branch is limited to entries seen within the last 7 days
+    const recentCutoff = query.where.OR[1].lastSeen.gte;
+    expect(recentCutoff).toBeInstanceOf(Date);
+    const daysAgo = (Date.now() - recentCutoff.getTime()) / 86_400_000;
+    expect(daysAgo).toBeGreaterThan(6.9);
+    expect(daysAgo).toBeLessThan(7.1);
+    expect(query.where.OR[0].lastSeen).toBeUndefined();
   });
 });
 
