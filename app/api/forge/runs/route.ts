@@ -5,15 +5,15 @@ import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
 import { z } from 'zod'
 import { createForgeRun, listForgeRuns } from '@/src/services/forge/db'
 import { extractTextFromFile } from '@/src/services/forge/utils/markdown'
-import { validateGitLabRepoUrl } from '@/src/services/forge/utils/repo'
+import { validateGitHubRepoUrl } from '@/src/services/forge/utils/repo'
 
-const GitLabRepoUrlSchema = z.string().transform((value, ctx) => {
+const GitHubRepoUrlSchema = z.string().transform((value, ctx) => {
   try {
-    return validateGitLabRepoUrl(value)
+    return validateGitHubRepoUrl(value)
   } catch (err) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: err instanceof Error ? err.message : 'Invalid GitLab repo URL',
+      message: err instanceof Error ? err.message : 'Invalid GitHub repo URL',
     })
     return z.NEVER
   }
@@ -21,7 +21,7 @@ const GitLabRepoUrlSchema = z.string().transform((value, ctx) => {
 
 const BuildJsonSchema = z.object({
   mode: z.literal('build'),
-  repoUrl: GitLabRepoUrlSchema,
+  repoUrl: GitHubRepoUrlSchema,
   specContent: z.string().min(1),
   specFilename: z.string().optional(),
   branchName: z.string().optional(),
@@ -30,7 +30,7 @@ const BuildJsonSchema = z.object({
 
 const DebugJsonSchema = z.object({
   mode: z.literal('debug'),
-  repoUrl: GitLabRepoUrlSchema,
+  repoUrl: GitHubRepoUrlSchema,
   bugDescription: z.string().min(1),
   branchName: z.string().optional(),
   continuous: z.boolean().optional(),
@@ -52,13 +52,13 @@ export async function POST(req: Request): Promise<NextResponse> {
       const specFile = formData.get('specFile') as File | null
       const continuous = formData.get('continuous') === 'true'
 
-      const repoResult = GitLabRepoUrlSchema.safeParse(repoUrl)
+      const repoResult = GitHubRepoUrlSchema.safeParse(repoUrl)
       if (!repoUrl || !specFile) {
         return NextResponse.json({ error: 'repoUrl and specFile are required' }, { status: 400 })
       }
 
       if (!repoResult.success) {
-        return NextResponse.json({ error: repoResult.error.issues[0]?.message ?? 'Invalid GitLab repo URL' }, { status: 400 })
+        return NextResponse.json({ error: repoResult.error.issues[0]?.message ?? 'Invalid GitHub repo URL' }, { status: 400 })
       }
 
       const buffer = Buffer.from(await specFile.arrayBuffer())

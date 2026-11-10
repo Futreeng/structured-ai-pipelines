@@ -3,6 +3,7 @@ import { prisma } from '@/src/lib/prisma';
 import { createWithFallback } from '@/src/lib/anthropic';
 import { TraceLogger } from '@/src/services/trace-logger';
 import { SkillLoader } from '@/src/services/skill-loader';
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
 
 interface InspectorFailure {
   criterion: string;
@@ -88,8 +89,9 @@ export class InspectorAgent {
     try {
       const systemPrompt = await SkillLoader.getSkillPromptAsync('inspector-agent');
       const response = await createWithFallback(client, {
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1024,
+        model: CLAUDE_MODELS.main,
+        max_tokens: 4096,
+        output_config: { effort: EFFORT.quick },
         system: systemPrompt,
         messages: [{ role: 'user', content: evalContext }],
       });

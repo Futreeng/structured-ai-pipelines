@@ -105,11 +105,8 @@ export default function BuildForm() {
         <button
           type="button"
           onClick={() => setEntryMode('guided')}
-          className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
-            entryMode === 'guided'
-              ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30'
-              : 'text-zinc-500 hover:text-orange-400'
-          }`}
+          // Guided mode renders <GuidedBuilder> above, so this toggle only shows in direct mode
+          className="flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all text-zinc-500 hover:text-orange-400"
         >
           <Sparkles className="h-3.5 w-3.5" />
           Help me describe it

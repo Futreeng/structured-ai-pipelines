@@ -2,6 +2,7 @@ import { prisma } from '@/src/lib/prisma';
 import { CostTracker } from '@/src/services/cost-tracker';
 import { LearningStore } from '@/src/services/learning-store';
 import { TraceLogger } from '@/src/services/trace-logger';
+import { commitFilesToNewBranch, getDefaultBranch, parseGitHubRepo } from '@/src/services/forge/utils/github';
 
 /**
  * SCRIBE Agent — auto-documentation after each phase and at pipeline completion.
@@ -123,13 +124,13 @@ export class ScribeAgent {
 
       console.log(`[Scribe] Documented Phase ${phaseIndex}: ${stageName} ($${costUsd.toFixed(4)}, ${retries} retries)`);
 
-      // Auto-commit phase files to GitLab if project has a repo URL
+      // Auto-commit phase files to GitHub if project has a repo URL
       try {
-        await ScribeAgent.commitPhaseToGitLab(runId, run.projectId, phaseIndex, stageName, {
+        await ScribeAgent.commitPhaseToGitHub(runId, run.projectId, phaseIndex, stageName, {
           costUsd, inputTokens, outputTokens, model, retries,
         });
       } catch (gitErr) {
-        console.error('[Scribe] GitLab commit failed (non-fatal):', gitErr);
+        console.error('[Scribe] GitHub commit failed (non-fatal):', gitErr);
       }
     } catch (err) {
       console.error('[Scribe] Documentation failed (non-fatal):', err);
@@ -137,9 +138,9 @@ export class ScribeAgent {
   }
 
   /**
-   * Commit phase files to GitLab via API (no git clone needed).
+   * Commit phase files to GitHub via API (no git clone needed).
    */
-  private static async commitPhaseToGitLab(
+  private static async commitPhaseToGitHub(
     runId: string,
     projectId: string,
     phaseIndex: number,
@@ -152,7 +153,7 @@ export class ScribeAgent {
       orderBy: { startedAt: 'desc' },
       select: { userInput: true },
     });
-    // Extract repo URL from user input if it looks like a GitLab URL
+    // Extract repo URL from user input if it looks like a GitHub URL
     const repoMatch = forgeRun?.userInput?.match(/(https?:\/\/[^\s]+\.git)/);
     if (!repoMatch) return;
     const repoUrl = repoMatch[1];
@@ -164,7 +165,7 @@ export class ScribeAgent {
     if (!project) return;
 
     const account = await prisma.account.findFirst({
-      where: { userId: project.userId, provider: 'gitlab' },
+      where: { userId: project.userId, provider: 'github' },
       select: { access_token: true },
     });
     if (!account?.access_token) return;
@@ -174,28 +175,6 @@ export class ScribeAgent {
       select: { filePath: true, content: true },
     });
     if (phaseFiles.length === 0) return;
-
-    const cleanUrl = repoUrl.replace(/\.git$/, '');
-    const url = new URL(cleanUrl);
-    const host = url.origin;
-    const projectPath = url.pathname.slice(1);
-
-    let Gitlab: typeof import('@gitbeaker/rest').Gitlab;
-    try {
-      const mod = await import('@gitbeaker/rest');
-      Gitlab = mod.Gitlab;
-    } catch {
-      console.log('[Scribe] @gitbeaker/rest not available — skipping GitLab commit');
-      return;
-    }
-
-    const gl = new Gitlab({ host, token: account.access_token });
-
-    const actions = phaseFiles.map((f) => ({
-      action: 'create' as const,
-      filePath: f.filePath,
-      content: f.content,
-    }));
 
     const commitMessage = [
       `forge: Phase ${phaseIndex} — ${stageName}`,
@@ -208,14 +187,20 @@ export class ScribeAgent {
     ].join('\n');
 
     try {
-      const proj = await gl.Projects.show(projectPath);
+      const repoRef = parseGitHubRepo(repoUrl);
+      const token = account.access_token;
+      const baseBranch = await getDefaultBranch(token, repoRef);
       const branch = `forge/${project.name.toLowerCase().replace(/\s+/g, '-')}/${Date.now().toString(36)}`;
-      await gl.Branches.create(projectPath, branch, proj.default_branch || 'main');
-      await gl.Commits.create(projectPath, branch, commitMessage, actions);
-      console.log(`[Scribe] Committed Phase ${phaseIndex} to GitLab branch ${branch} (${phaseFiles.length} files)`);
+      await commitFilesToNewBranch(token, repoRef, {
+        baseBranch,
+        branch,
+        message: commitMessage,
+        files: phaseFiles.map((f) => ({ path: f.filePath, content: f.content })),
+      });
+      console.log(`[Scribe] Committed Phase ${phaseIndex} to GitHub branch ${branch} (${phaseFiles.length} files)`);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
-      console.error(`[Scribe] GitLab commit failed: ${message}`);
+      console.error(`[Scribe] GitHub commit failed: ${message}`);
     }
   }
 

@@ -29,7 +29,7 @@ export default function ForgePage() {
                 <span className="text-sm font-semibold text-zinc-200">Know what you want?</span>
               </div>
               <p className="text-xs leading-5 text-zinc-500">
-                Paste your spec directly or upload a doc. Forge clones your repo, generates the code, and opens a merge request.
+                Paste your spec directly or upload a doc. Forge clones your repo, generates the code, and opens a pull request.
               </p>
             </div>
             <div className="rounded-xl border border-orange-500/20 bg-orange-500/5 p-4">

@@ -2,6 +2,7 @@ import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib
 import type { BugReport, CodeMap } from '../types/bug'
 import type { RootCause, FixPlan } from '../types/fix'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are a fix planner. Given a bug report, root cause analysis, and code map, plan the minimal set of file changes needed to fix the bug.
 
@@ -50,8 +51,9 @@ export async function planFix(
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

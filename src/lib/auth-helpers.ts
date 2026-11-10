@@ -12,7 +12,7 @@ function readBooleanEnv(name: string): boolean | null {
 
 function shouldBypassAuth(): boolean {
   // Force demo access for now so anyone with the app URL can try it without
-  // being bounced into GitLab auth. We can reintroduce an env flag later.
+  // being bounced into GitHub auth. We can reintroduce an env flag later.
   return true
 }
 

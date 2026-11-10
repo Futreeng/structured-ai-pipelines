@@ -1,6 +1,7 @@
 import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib/anthropic'
 import type { FixPlanStep, RootCause, FixFile } from '../types/fix'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are a targeted bug fixer. Generate the corrected file content for a single fix step.
 
@@ -45,8 +46,9 @@ export async function scaffoldFix(
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 16000,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

@@ -14,6 +14,7 @@ import { isOllamaAvailable } from '@/src/lib/ollama-client';
 import { SkillLoader } from '@/src/services/skill-loader';
 import { existsSync } from 'fs';
 import { join } from 'path';
+import { CLAUDE_MODELS } from '@/src/lib/models';
 
 export class OrchestratedRunner {
   /**
@@ -75,8 +76,8 @@ export class OrchestratedRunner {
       {
         name: 'claude',
         available: !!process.env.ANTHROPIC_API_KEY,
-        models: ['claude-sonnet-4-20250514'],
-        costPerToken: 0.000003,
+        models: [CLAUDE_MODELS.main],
+        costPerToken: 0.000002, // claude-sonnet-5-5 input: $2 / 1M tokens
       },
       {
         name: 'ollama',

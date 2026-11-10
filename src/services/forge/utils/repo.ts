@@ -9,7 +9,7 @@ const SOURCE_EXTENSIONS = new Set([
   '.cs', '.cpp', '.c', '.h', '.swift', '.kt', '.scala', '.php',
 ])
 
-export function validateGitLabRepoUrl(repoUrl: string): string {
+export function validateGitHubRepoUrl(repoUrl: string): string {
   return validateRepoUrl(repoUrl)
 }
 
@@ -23,14 +23,14 @@ export function validateRepoUrl(repoUrl: string): string {
 
   const hostname = url.hostname.toLowerCase()
 
-  const configuredHosts = (process.env.GITLAB_ALLOWED_HOSTS ?? process.env.REPO_ALLOWED_HOSTS ?? '')
+  const configuredHosts = (process.env.GITHUB_ALLOWED_HOSTS ?? process.env.REPO_ALLOWED_HOSTS ?? '')
     .split(',')
     .map((host) => host.trim().toLowerCase())
     .filter(Boolean)
 
   const allowedHosts = configuredHosts.length > 0
     ? configuredHosts
-    : ['github.com', 'gitlab.com', 'labs.gauntletai.com', 'bitbucket.org']
+    : ['github.com']
 
   const isPrivateIpv4 =
     /^10\./.test(hostname) ||
@@ -47,7 +47,7 @@ export function validateRepoUrl(repoUrl: string): string {
     hostname === '::1' ||
     isPrivateIpv4
   ) {
-    throw new Error(`Repo URL must use HTTPS and point to a supported host (GitHub, GitLab, Bitbucket)`)
+    throw new Error(`Repo URL must use HTTPS and point to a GitHub repository (github.com)`)
   }
 
   const pathParts = url.pathname.replace(/\/$/, '').split('/').filter(Boolean)

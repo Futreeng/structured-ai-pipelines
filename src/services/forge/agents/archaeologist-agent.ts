@@ -1,6 +1,7 @@
 import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib/anthropic'
 import type { BugReport, CodeMap } from '../types/bug'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are a code archaeologist. Given a bug report and repository code, map the affected files, code locations, call chains, and entry points.
 
@@ -50,8 +51,9 @@ export async function mapCodePaths(
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4096,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 8192,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

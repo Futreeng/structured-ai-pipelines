@@ -23,7 +23,7 @@ Gauntlet Forge is a self-correcting AI code generation platform. It turns natura
 
 ## Quick Start
 
-Visit https://structured-ai-pipelines.vercel.app, sign in with GitLab, add your Anthropic API key in Settings, create a project, and click **Start Pipeline**.
+Visit https://structured-ai-pipelines.vercel.app, sign in with GitHub, add your Anthropic API key in Settings, create a project, and click **Start Pipeline**.
 
 Auto-pilot is on by default — the pipeline runs end-to-end without stopping.
 

@@ -141,7 +141,7 @@ export default function RunDetailView({
       {status === 'complete' && result && (
         <Card className="border-emerald-500/30 bg-emerald-500/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base text-emerald-300">Merge Request Created</CardTitle>
+            <CardTitle className="text-base text-emerald-300">Pull Request Created</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="font-medium text-zinc-100">{result.title}</p>
@@ -149,7 +149,7 @@ export default function RunDetailView({
             <Button asChild size="sm" className="bg-emerald-700 hover:bg-emerald-600 text-white border-0">
               <a href={result.mrUrl} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="mr-2 h-4 w-4" />
-                View Merge Request
+                View Pull Request
               </a>
             </Button>
           </CardContent>

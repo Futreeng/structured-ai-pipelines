@@ -1,5 +1,6 @@
 ﻿import { prisma } from '@/src/lib/prisma';
 import { CostTracker } from '@/src/services/cost-tracker';
+import { CLAUDE_MODELS } from '@/src/lib/models';
 
 const DEFAULT_RUN_BUDGET = parseFloat(process.env.FORGE_RUN_BUDGET_USD || '5.00');
 const DEFAULT_DAILY_BUDGET = parseFloat(process.env.FORGE_DAILY_BUDGET_USD || '20.00');
@@ -81,7 +82,7 @@ export class CostGuard {
     };
   }
 
-  static estimateRunCost(nodeCount: number, model: string = 'claude-sonnet-4-20250514'): {
+  static estimateRunCost(nodeCount: number, model: string = CLAUDE_MODELS.main): {
     estimatedCostUsd: number;
     breakdown: string;
     withinBudget: boolean;

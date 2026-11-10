@@ -2,6 +2,7 @@ import { getAnthropicClient, createWithFallback, callWithRetry } from '@/src/lib
 import type { ManifestFile } from '../types/manifest'
 import type { ConventionsProfile } from '../types/conventions'
 import { SkillLoader } from '@/src/services/skill-loader'
+import { CLAUDE_MODELS, EFFORT } from '@/src/lib/models'
 
 const FALLBACK_PROMPT = `You are a production code generator. Generate the complete, production-ready source code for a single file.
 
@@ -56,8 +57,9 @@ export async function scaffoldFile(opts: {
 
   const response = await callWithRetry(() =>
     createWithFallback(client, {
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 8192,
+      model: CLAUDE_MODELS.main,
+      max_tokens: 16000,
+      output_config: { effort: EFFORT.pipeline },
       system: systemPrompt,
       messages: [{ role: 'user', content: userMessage }],
     })

@@ -66,13 +66,13 @@ export const forgeTemplates: ForgeTemplate[] = [
 ]
 
 export const forgeDeliveryPromises = [
-  'Repo-aware build and debug flows that clone a GitLab project, inspect conventions, and generate a merge-request-ready diff',
+  'Repo-aware build and debug flows that clone a GitHub repository, inspect conventions, and generate a pull-request-ready diff',
   'Verification gates for generated files, dependency repair, build checks, delivery guard, and preview readiness',
   'Run history with logs, cost breakdowns, approvals, rejection handling, and shareable delivery summaries',
 ]
 
 export const forgeTrustSignals = [
-  'Human approval before plan execution and before merge-request publish',
+  'Human approval before plan execution and before pull-request publish',
   'Measured token/cost reporting with model, backend, and pricing-source details',
   'Atomic run claiming, ownership checks, persisted handoff data, and path containment for generated files',
 ]

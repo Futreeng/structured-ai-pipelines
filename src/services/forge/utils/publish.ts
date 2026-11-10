@@ -1,9 +1,10 @@
-import { Gitlab } from '@gitbeaker/rest'
 import simpleGit from 'simple-git'
-import { prisma } from '@/src/lib/prisma'
 import { writeFileSync, mkdirSync } from 'fs'
 import { dirname } from 'path'
-import { safeRepoPath, validateGitLabRepoUrl } from './repo'
+import { safeRepoPath } from './repo'
+import { createPullRequest, getDefaultBranch, parseGitHubRepo } from './github'
+
+export { getGitHubToken } from './github'
 
 export interface PublishOptions {
   workDir: string
@@ -22,36 +23,15 @@ export interface PublishResult {
   title: string
 }
 
-export async function getGitLabToken(userId: string): Promise<string> {
-  const account = await prisma.account.findFirst({
-    where: { userId, provider: 'gitlab' },
-    select: { access_token: true },
-  })
-
-  if (!account?.access_token) {
-    throw new Error('No GitLab account linked. Please re-authenticate with GitLab.')
-  }
-
-  return account.access_token
-}
-
-export async function publishToGitLab(opts: PublishOptions): Promise<PublishResult> {
+export async function publishToGitHub(opts: PublishOptions): Promise<PublishResult> {
   const { workDir, repoUrl, files, title, description, token } = opts
 
-  // Parse repo URL to extract host and project path
-  const cleanUrl = validateGitLabRepoUrl(repoUrl).replace(/\.git$/, '')
-  const url = new URL(cleanUrl)
-  const host = url.origin
-  const projectPath = url.pathname.slice(1) // remove leading /
+  const repoRef = parseGitHubRepo(repoUrl)
 
-  console.log(`[Publish] Publishing to ${host} / ${projectPath}`)
-
-  // Create Gitbeaker client
-  const gl = new Gitlab({ host, token })
+  console.log(`[Publish] Publishing to github.com / ${repoRef.owner}/${repoRef.repo}`)
 
   // Get the repo's default branch
-  const project = await gl.Projects.show(projectPath)
-  const targetBranch = project.default_branch || 'main'
+  const targetBranch = await getDefaultBranch(token, repoRef)
 
   // Generate branch name if not provided
   const branch = opts.branchName || `forge/${Date.now().toString(36)}`
@@ -74,20 +54,19 @@ export async function publishToGitLab(opts: PublishOptions): Promise<PublishResu
 
   console.log(`[Publish] Pushed branch ${branch}`)
 
-  // Create merge request
-  const mr = await gl.MergeRequests.create(
-    projectPath,
-    branch,
-    targetBranch,
+  // Create pull request
+  const pr = await createPullRequest(token, repoRef, {
+    head: branch,
+    base: targetBranch,
     title,
-    { description, removeSourceBranch: true },
-  )
+    body: description,
+  })
 
-  console.log(`[Publish] Created MR !${mr.iid}: ${mr.web_url}`)
+  console.log(`[Publish] Created PR #${pr.number}: ${pr.html_url}`)
 
   return {
-    mrUrl: mr.web_url,
-    mrIid: mr.iid,
+    mrUrl: pr.html_url,
+    mrIid: pr.number,
     branch,
     title,
   }

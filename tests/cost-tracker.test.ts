@@ -24,6 +24,34 @@ describe('CostTracker', () => {
     expect(CostTracker.getPricingDetails('claude-opus-4-7').outputPerMTok).toBe(25)
   })
 
+  it('prices current Claude 5 models, including the Haiku 5.5 long-prompt rate', () => {
+    expect(CostTracker.calculateCost({
+      inputTokens: 1_000_000,
+      outputTokens: 1_000_000,
+      model: 'claude-sonnet-5-5',
+      backend: 'anthropic',
+    })).toBe(12)
+
+    // Haiku 5.5: $0.10 / $0.50 up to 100K prompt tokens...
+    expect(CostTracker.calculateCost({
+      inputTokens: 100_000,
+      outputTokens: 1_000_000,
+      model: 'claude-haiku-5-5',
+      backend: 'anthropic',
+    })).toBe(0.51)
+
+    // ...and $0.50 / $2.50 above it
+    expect(CostTracker.calculateCost({
+      inputTokens: 200_000,
+      outputTokens: 1_000_000,
+      model: 'claude-haiku-5-5',
+      backend: 'anthropic',
+    })).toBe(2.6)
+
+    // Unknown models fall back to the current Sonnet rate
+    expect(CostTracker.getPricingDetails('claude-unknown').inputPerMTok).toBe(2)
+  })
+
   it('labels local and untracked providers distinctly from billable Anthropic cost', () => {
     expect(CostTracker.calculateCost({
       inputTokens: 1_000_000,

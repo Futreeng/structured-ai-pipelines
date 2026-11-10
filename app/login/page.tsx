@@ -15,13 +15,13 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl">Sign in to your Forge workspace</CardTitle>
           <p className="text-sm leading-6 text-zinc-400">
-            Use your GitLab account to return to the session that owns your saved projects, runs, and settings.
+            Use your GitHub account to return to the session that owns your saved projects, runs, and settings.
           </p>
         </CardHeader>
         <CardContent className="space-y-3">
-          <Button className="w-full" onClick={() => signIn('gitlab', { callbackUrl: '/' })}>
+          <Button className="w-full" onClick={() => signIn('github', { callbackUrl: '/' })}>
             <LogIn className="mr-2 h-4 w-4" />
-            Continue with GitLab
+            Continue with GitHub
           </Button>
           <Button className="w-full" variant="outline" onClick={() => window.location.assign('/')}>
             Continue in demo mode

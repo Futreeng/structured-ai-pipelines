@@ -3,10 +3,17 @@
 const ANTHROPIC_PRICING_SOURCE = 'https://docs.anthropic.com/en/docs/about-claude/pricing';
 
 /**
- * Pricing per 1M tokens. Verified against Anthropic list pricing on 2026-04-27.
- * Cache, batch, long-context, regional endpoint, tax, and reseller markup are not included.
+ * Pricing per 1M tokens. Claude 5 rates as of 2026-10; older entries verified 2026-04-27
+ * and kept so historical runs still price correctly.
+ * Cache, batch, regional endpoint, tax, and reseller markup are not included.
  */
 const PRICING: Record<string, { input: number; output: number }> = {
+  // Current models (see src/lib/models.ts)
+  'claude-opus-5-5': { input: 4.00, output: 20.00 },
+  'claude-sonnet-5-5': { input: 2.00, output: 10.00 },
+  'claude-haiku-5-5': { input: 0.10, output: 0.50 }, // prompts <= 100K tokens; see LONG_PROMPT_PRICING
+  'claude-fable-5-1': { input: 10.00, output: 50.00 },
+  // Previous models
   'claude-opus-4-7': { input: 5.00, output: 25.00 },
   'claude-opus-4-7-20260423': { input: 5.00, output: 25.00 },
   'claude-sonnet-4-20250514': { input: 3.00, output: 15.00 },
@@ -17,6 +24,13 @@ const PRICING: Record<string, { input: number; output: number }> = {
   'claude-opus-4-1-20250805': { input: 15.00, output: 75.00 },
   'claude-opus-4-6': { input: 5.00, output: 25.00 },
 };
+
+/** Models billed at a higher rate when the prompt exceeds a token threshold. */
+const LONG_PROMPT_PRICING: Record<string, { overInputTokens: number; input: number; output: number }> = {
+  'claude-haiku-5-5': { overInputTokens: 100_000, input: 0.50, output: 2.50 },
+};
+
+const FALLBACK_MODEL = 'claude-sonnet-5-5';
 
 export interface PricingDetails {
   inputPerMTok: number;
@@ -66,20 +80,23 @@ export class CostTracker {
     }
 
     const explicit = PRICING[model];
-    const pricing = explicit ?? PRICING['claude-sonnet-4-20250514'];
+    const pricing = explicit ?? PRICING[FALLBACK_MODEL];
     return {
       inputPerMTok: pricing.input,
       outputPerMTok: pricing.output,
       source: ANTHROPIC_PRICING_SOURCE,
       note: explicit
-        ? 'Anthropic list price per million tokens. Cache, batch, long-context, regional endpoint, tax, and reseller markup are not included.'
-        : `Unknown Anthropic model "${model}" priced with the Sonnet 4 fallback rate. Cache, batch, long-context, regional endpoint, tax, and reseller markup are not included.`,
+        ? 'Anthropic list price per million tokens. Cache, batch, regional endpoint, tax, and reseller markup are not included.'
+        : `Unknown Anthropic model "${model}" priced with the ${FALLBACK_MODEL} fallback rate. Cache, batch, regional endpoint, tax, and reseller markup are not included.`,
       billable: true,
     };
   }
 
   static calculateCost(usage: TokenUsage): number {
-    const pricing = CostTracker.getPricingDetails(usage.model, usage.backend);
+    const longPrompt = usage.backend === 'anthropic' ? LONG_PROMPT_PRICING[usage.model] : undefined;
+    const pricing = longPrompt && usage.inputTokens > longPrompt.overInputTokens
+      ? { inputPerMTok: longPrompt.input, outputPerMTok: longPrompt.output }
+      : CostTracker.getPricingDetails(usage.model, usage.backend);
     const inputCost = (usage.inputTokens / 1_000_000) * pricing.inputPerMTok;
     const outputCost = (usage.outputTokens / 1_000_000) * pricing.outputPerMTok;
     return Math.round((inputCost + outputCost) * 1_000_000) / 1_000_000;
