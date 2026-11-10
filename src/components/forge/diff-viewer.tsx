@@ -21,49 +21,7 @@ export default function DiffViewer({ runId }: DiffViewerProps) {
   const [rejecting, setRejecting] = useState(false)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  if (!diff) return null
-
-  const toggleFile = (path: string) => {
-    setExpandedFiles(prev => {
-      const next = new Set(prev)
-      next.has(path) ? next.delete(path) : next.add(path)
-      return next
-    })
-  }
-
-  const handleApprove = async () => {
-    setApproving(true)
-    setActionError(null)
-    try {
-      const res = await fetch(`/api/forge/runs/${runId}/approve`, { method: 'POST' })
-      const data = await res.json() as { mrUrl?: string; mrIid?: number; branch?: string; title?: string; error?: string }
-      if (!res.ok) throw new Error(data.error ?? 'Approval failed')
-      setResult({ mrUrl: data.mrUrl!, mrIid: data.mrIid!, branch: data.branch!, title: data.title! })
-      setStatus('complete')
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Approval failed')
-      setApproving(false)
-    }
-  }
-
-  const handleReject = async () => {
-    setRejecting(true)
-    setActionError(null)
-    try {
-      const res = await fetch(`/api/forge/runs/${runId}/reject`, { method: 'POST' })
-      if (!res.ok) {
-        const data = await res.json() as { error?: string }
-        throw new Error(data.error ?? 'Rejection failed')
-      }
-      setStatus('rejected')
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Rejection failed')
-      setRejecting(false)
-    }
-  }
-
-  const busy = approving || rejecting
-  const hasVerificationErrors = !diff.lintPassed || !diff.testsPassed || diff.errors.length > 0
+  // Hooks must run before the early return below (rules of hooks)
   const autoFixSummary = useMemo(() => {
     const autoFixLogs = logs.filter((log) => log.step === 'AutoFix')
     if (autoFixLogs.length === 0) return null
@@ -138,6 +96,50 @@ export default function DiffViewer({ runId }: DiffViewerProps) {
       cycles: cycleEntries,
     }
   }, [logs])
+
+  if (!diff) return null
+
+  const toggleFile = (path: string) => {
+    setExpandedFiles(prev => {
+      const next = new Set(prev)
+      next.has(path) ? next.delete(path) : next.add(path)
+      return next
+    })
+  }
+
+  const handleApprove = async () => {
+    setApproving(true)
+    setActionError(null)
+    try {
+      const res = await fetch(`/api/forge/runs/${runId}/approve`, { method: 'POST' })
+      const data = await res.json() as { mrUrl?: string; mrIid?: number; branch?: string; title?: string; error?: string }
+      if (!res.ok) throw new Error(data.error ?? 'Approval failed')
+      setResult({ mrUrl: data.mrUrl!, mrIid: data.mrIid!, branch: data.branch!, title: data.title! })
+      setStatus('complete')
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Approval failed')
+      setApproving(false)
+    }
+  }
+
+  const handleReject = async () => {
+    setRejecting(true)
+    setActionError(null)
+    try {
+      const res = await fetch(`/api/forge/runs/${runId}/reject`, { method: 'POST' })
+      if (!res.ok) {
+        const data = await res.json() as { error?: string }
+        throw new Error(data.error ?? 'Rejection failed')
+      }
+      setStatus('rejected')
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Rejection failed')
+      setRejecting(false)
+    }
+  }
+
+  const busy = approving || rejecting
+  const hasVerificationErrors = !diff.lintPassed || !diff.testsPassed || diff.errors.length > 0
 
   const toggleCycle = (cycle: number) => {
     setExpandedCycles((prev) => {
