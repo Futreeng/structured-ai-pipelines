@@ -1,13 +1,13 @@
-import { notFound } from 'next/navigation';
-import { getSessionOrDemo } from '@/src/lib/auth-helpers';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/src/lib/auth-helpers';
 import { prisma } from '@/src/lib/prisma';
 import { Header } from '@/src/components/layout/header';
 import { PageContainer } from '@/src/components/layout/page-container';
 import { ApiKeyForm } from '@/src/components/settings/api-key-form';
 
 export default async function SettingsPage() {
-  const session = await getSessionOrDemo();
-  if (!session?.user?.id) notFound();
+  const session = await getSession();
+  if (!session?.user?.id) redirect('/login');
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },

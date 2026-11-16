@@ -1,12 +1,12 @@
 export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
-import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
+import { getForgeSession } from '@/src/lib/auth-helpers'
 import { getForgeRun, updateForgeRun } from '@/src/services/forge/db'
 
 export async function POST(_req: Request, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const params = await props.params
-  const session = await getForgeSessionOrDemo()
+  const session = await getForgeSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
