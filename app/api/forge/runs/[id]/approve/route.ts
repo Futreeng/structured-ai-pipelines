@@ -4,13 +4,13 @@ import { rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { NextResponse } from 'next/server'
-import { getForgeSession } from '@/src/lib/auth-helpers'
+import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
 import { getForgeRunWithDetails, updateForgeRun, saveForgeRunResult } from '@/src/services/forge/db'
 import { publishToGitHub, getGitHubToken } from '@/src/services/forge/utils/publish'
 
 export async function POST(_req: Request, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const params = await props.params
-  const session = await getForgeSession()
+  const session = await getForgeSessionOrDemo()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -47,9 +47,18 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
       )
     }
 
-    await updateForgeRun(runId, { status: 'publishing' })
+    let token: string
+    try {
+      token = await getGitHubToken(session.user.id)
+    } catch {
+      // No GitHub credentials: leave the run awaiting approval so the user can still download the ZIP.
+      return NextResponse.json(
+        { error: 'Pull-request publishing is unavailable without a GitHub account. Use "Download project (.zip)" instead.' },
+        { status: 400 },
+      )
+    }
 
-    const token = await getGitHubToken(session.user.id)
+    await updateForgeRun(runId, { status: 'publishing' })
     const workDir = join(tmpdir(), `forge-${runId}`)
 
     const title = run.mode === 'build'

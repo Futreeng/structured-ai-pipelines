@@ -301,6 +301,13 @@ export default function DiffViewer({ runId }: DiffViewerProps) {
       )}
 
       <div className="flex gap-3">
+        <a
+          href={`/api/forge/runs/${runId}/download`}
+          download
+          className="flex-1 text-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg transition-colors"
+        >
+          Download project (.zip)
+        </a>
         <button
           onClick={handleApprove}
           disabled={busy || hasVerificationErrors}

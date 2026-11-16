@@ -1,25 +1,91 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/src/lib/auth';
 import { NextResponse } from 'next/server';
+import { prisma } from '@/src/lib/prisma';
 
-type SessionUser = { id: string; name?: string | null; email?: string | null };
+function readBooleanEnv(name: string): boolean | null {
+  const raw = process.env[name]?.trim().toLowerCase()
+  if (raw === 'true') return true
+  if (raw === 'false') return false
+  return null
+}
+
+function shouldBypassAuth(): boolean {
+  // Force demo access for now so anyone with the app URL can try it without
+  // being bounced into GitHub auth. We can reintroduce an env flag later.
+  return true
+}
+
+function shouldEnableForgeGuestAccess(): boolean {
+  const explicit = readBooleanEnv('FORGE_GUEST_ACCESS')
+  if (explicit !== null) return explicit
+
+  // Forge is safe to browse in guest/demo mode by default so others can try it
+  // without opening auth across the rest of the app.
+  return true
+}
+
+const AUTH_BYPASS = shouldBypassAuth();
+const FORGE_GUEST_ACCESS = shouldEnableForgeGuestAccess();
+const DEMO_USER_EMAIL = 'demo@gauntletforge.dev';
+const OFFLINE_DEMO_USER = {
+  id: 'demo-offline-user',
+  name: 'Demo User',
+  email: DEMO_USER_EMAIL,
+  image: null as string | null,
+};
+
+async function getOrCreateDemoUser() {
+  try {
+    let user = await prisma.user.findUnique({ where: { email: DEMO_USER_EMAIL } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: { email: DEMO_USER_EMAIL, name: 'Demo User' },
+      });
+    }
+    return { id: user.id, name: user.name, email: user.email, image: user.image };
+  } catch (err) {
+    console.warn('[Auth] Demo database user unavailable; using offline demo session.', err);
+    return OFFLINE_DEMO_USER;
+  }
+}
+
+export async function getAuthenticatedUser() {
+  // Always try real session first
+  const session = await getServerSession(authOptions);
+  if (session?.user?.id) {
+    return session.user;
+  }
+  return getOrCreateDemoUser();
+}
 
 /**
- * Every user must be signed in with GitHub. These return null when there is no
- * real session; API routes respond 401 and pages redirect to /login.
+ * Get the authenticated session, or a demo session when auth is bypassed.
+ * Real sessions always take priority over the demo user.
  */
-export async function getAuthenticatedUser() {
+export async function getSessionOrDemo(): Promise<{ user: { id: string; name?: string | null; email?: string | null } } | null> {
+  // Always try real session first
   const session = await getServerSession(authOptions);
-  return session?.user?.id ? session.user : null;
+  if (session?.user?.id) {
+    return session as { user: { id: string; name?: string | null; email?: string | null } };
+  }
+  const user = await getOrCreateDemoUser();
+  return { user };
 }
 
-export async function getSession(): Promise<{ user: SessionUser } | null> {
+/**
+ * Forge-specific session resolver.
+ * Keeps Forge open to guest/demo users by default, even when the rest of the
+ * app still requires authentication.
+ */
+export async function getForgeSessionOrDemo(): Promise<{ user: { id: string; name?: string | null; email?: string | null } } | null> {
   const session = await getServerSession(authOptions);
-  return session?.user?.id ? (session as { user: SessionUser }) : null;
-}
+  if (session?.user?.id) {
+    return session as { user: { id: string; name?: string | null; email?: string | null } };
+  }
 
-export async function getForgeSession(): Promise<{ user: SessionUser } | null> {
-  return getSession();
+  const user = await getOrCreateDemoUser();
+  return { user };
 }
 
 export function unauthorizedResponse() {
