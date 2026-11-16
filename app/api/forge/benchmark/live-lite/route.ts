@@ -3,7 +3,7 @@ export const maxDuration = 300
 
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
-import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
+import { getForgeSession } from '@/src/lib/auth-helpers'
 import {
   executeForgeLiveLiteScenario,
   listForgeLiveLiteScenarios,
@@ -25,7 +25,7 @@ export async function GET(): Promise<NextResponse> {
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const session = await getForgeSessionOrDemo()
+  const session = await getForgeSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

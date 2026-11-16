@@ -4,13 +4,13 @@ import { rmSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { NextResponse } from 'next/server'
-import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
+import { getForgeSession } from '@/src/lib/auth-helpers'
 import { getForgeRunWithDetails, updateForgeRun, saveForgeRunResult } from '@/src/services/forge/db'
 import { publishToGitHub, getGitHubToken } from '@/src/services/forge/utils/publish'
 
 export async function POST(_req: Request, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
   const params = await props.params
-  const session = await getForgeSessionOrDemo()
+  const session = await getForgeSession()
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

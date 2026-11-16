@@ -23,9 +23,6 @@ export default function LoginPage() {
             <LogIn className="mr-2 h-4 w-4" />
             Continue with GitHub
           </Button>
-          <Button className="w-full" variant="outline" onClick={() => window.location.assign('/')}>
-            Continue in demo mode
-          </Button>
         </CardContent>
       </Card>
     </main>

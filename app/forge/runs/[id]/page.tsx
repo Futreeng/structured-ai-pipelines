@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { ChevronLeft } from 'lucide-react'
-import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
+import { getForgeSession } from '@/src/lib/auth-helpers'
 import { getForgeRunWithDetails } from '@/src/services/forge/db'
 import { Header } from '@/src/components/layout/header'
 import { PageContainer } from '@/src/components/layout/page-container'
@@ -14,10 +14,8 @@ export default async function ForgeRunDetailPage(
   }
 ) {
   const params = await props.params
-  const session = await getForgeSessionOrDemo()
-  if (!session?.user?.id) {
-    notFound()
-  }
+  const session = await getForgeSession()
+  if (!session?.user?.id) redirect('/login')
 
   const details = await getForgeRunWithDetails(params.id)
   if (!details || details.run.userId !== session.user.id) {
