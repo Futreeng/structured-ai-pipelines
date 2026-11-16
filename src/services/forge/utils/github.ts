@@ -14,11 +14,14 @@ export async function getGitHubToken(userId: string): Promise<string> {
     select: { access_token: true },
   })
 
-  if (!account?.access_token) {
-    throw new Error('No GitHub account linked. Please re-authenticate with GitHub.')
-  }
+  if (account?.access_token) return account.access_token
 
-  return account.access_token
+  // No linked GitHub account (guest/demo users): fall back to a server-side
+  // token so publishing doesn't require the user to sign in with GitHub.
+  const serverToken = process.env.GITHUB_PUBLISH_TOKEN?.trim()
+  if (serverToken) return serverToken
+
+  throw new Error('Publishing is not configured: set GITHUB_PUBLISH_TOKEN on the server.')
 }
 
 export function parseGitHubRepo(repoUrl: string): GitHubRepoRef {
