@@ -12,10 +12,8 @@ export const maxDuration = 60;
  * POST /api/pipeline/[runId]/rerun
  * Create a new run with the same input/type/settings as the given run.
  */
-export async function POST(
-  _req: Request,
-  { params }: { params: { runId: string } },
-) {
+export async function POST(_req: Request, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

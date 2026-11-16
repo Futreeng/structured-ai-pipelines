@@ -4,10 +4,8 @@ import { NextResponse } from 'next/server'
 import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
 import { getForgeRunWithDetails } from '@/src/services/forge/db'
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<NextResponse> {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<NextResponse> {
+  const params = await props.params
   try {
     const session = await getForgeSessionOrDemo()
     if (!session?.user?.id) {

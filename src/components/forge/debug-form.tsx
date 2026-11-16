@@ -51,7 +51,7 @@ export default function DebugForm() {
           required
           rows={12}
           placeholder={`What's broken?\n\nError logs:\n[paste error output here]`}
-          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 resize-y font-mono text-sm"
+          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 resize-y font-mono text-sm"
         />
       </div>
 
@@ -63,7 +63,7 @@ export default function DebugForm() {
           onChange={e => setRepoUrl(e.target.value)}
           required
           placeholder="https://github.com/your-org/your-repo"
-          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
+          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
         />
       </div>
 
@@ -76,7 +76,7 @@ export default function DebugForm() {
           value={branchName}
           onChange={e => setBranchName(e.target.value)}
           placeholder="forge/fix-bug"
-          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
+          className="w-full bg-zinc-900/50 border border-zinc-700 rounded-lg p-3 text-zinc-100 placeholder-zinc-500 focus:outline-hidden focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/30 text-sm"
         />
       </div>
 
@@ -96,7 +96,7 @@ export default function DebugForm() {
           role="switch"
           aria-checked={continuous}
           onClick={() => setContinuous(!continuous)}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-hidden focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 focus:ring-offset-zinc-900 ${
             continuous ? 'bg-orange-600' : 'bg-zinc-700'
           }`}
         >

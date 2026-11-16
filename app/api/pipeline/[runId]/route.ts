@@ -3,10 +3,8 @@ import { getAuthenticatedUser, unauthorizedResponse } from '@/src/lib/auth-helpe
 import { PipelineEngine } from '@/src/services/pipeline-engine';
 import { prisma } from '@/src/lib/prisma';
 
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -28,10 +26,8 @@ export async function GET(
   }
 }
 
-export async function DELETE(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function DELETE(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

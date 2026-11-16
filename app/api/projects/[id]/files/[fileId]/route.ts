@@ -4,10 +4,11 @@ import { prisma } from '@/src/lib/prisma';
 import { FileManager } from '@/src/services/file-manager';
 
 interface Props {
-  params: { id: string; fileId: string };
+  params: Promise<{ id: string; fileId: string }>;
 }
 
-export async function GET(_request: Request, { params }: Props) {
+export async function GET(_request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

@@ -7,10 +7,11 @@ import { PipelineView } from '@/src/components/pipeline/pipeline-view';
 import Link from 'next/link';
 
 interface Props {
-  params: { id: string; runId: string };
+  params: Promise<{ id: string; runId: string }>;
 }
 
-export default async function PipelineRunPage({ params }: Props) {
+export default async function PipelineRunPage(props: Props) {
+  const params = await props.params;
   const session = await getSessionOrDemo();
   if (!session?.user?.id) notFound();
 

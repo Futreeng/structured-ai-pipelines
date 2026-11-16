@@ -38,8 +38,8 @@ export default function DiagnosisPanel({ rootCause, affectedFiles, fixPlan }: Di
           <ol className="space-y-2">
             {fixPlan.map((step, i) => (
               <li key={i} className="flex items-start gap-3">
-                <span className="text-gray-500 text-xs mt-1 w-4 flex-shrink-0">{i + 1}.</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded font-medium flex-shrink-0 ${ACTION_STYLES[step.action] || ''}`}>
+                <span className="text-gray-500 text-xs mt-1 w-4 shrink-0">{i + 1}.</span>
+                <span className={`text-xs px-1.5 py-0.5 rounded font-medium shrink-0 ${ACTION_STYLES[step.action] || ''}`}>
                   {step.action}
                 </span>
                 <div>

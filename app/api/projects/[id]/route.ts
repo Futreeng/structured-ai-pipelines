@@ -4,10 +4,11 @@ import { prisma } from '@/src/lib/prisma';
 import { updateProjectSchema } from '@/src/lib/validators';
 
 interface RouteParams {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -56,7 +57,8 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
   });
 }
 
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
+export async function PATCH(request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -95,7 +97,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   });
 }
 
-export async function DELETE(_request: NextRequest, { params }: RouteParams) {
+export async function DELETE(_request: NextRequest, props: RouteParams) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

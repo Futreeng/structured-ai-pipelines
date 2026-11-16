@@ -6,10 +6,11 @@ import { PageContainer } from '@/src/components/layout/page-container';
 import { ProjectDetailClient } from '@/src/components/project/project-detail-client';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
-export default async function ProjectDetailPage({ params }: Props) {
+export default async function ProjectDetailPage(props: Props) {
+  const params = await props.params;
   const session = await getSessionOrDemo();
   if (!session?.user?.id) notFound();
 

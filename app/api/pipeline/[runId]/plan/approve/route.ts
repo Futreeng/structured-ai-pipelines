@@ -4,10 +4,8 @@ import { prisma } from '@/src/lib/prisma';
 import { DAGExecutor } from '@/src/services/dag-executor';
 import { DiskWriter } from '@/src/services/disk-writer';
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

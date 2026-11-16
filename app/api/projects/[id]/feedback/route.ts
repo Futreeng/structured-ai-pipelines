@@ -4,7 +4,7 @@ import { prisma } from '@/src/lib/prisma';
 import { z } from 'zod';
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 const feedbackSchema = z.object({
@@ -17,7 +17,8 @@ const feedbackSchema = z.object({
 /**
  * POST /api/projects/[id]/feedback — Submit feedback after download.
  */
-export async function POST(request: Request, { params }: Props) {
+export async function POST(request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -66,7 +67,8 @@ export async function POST(request: Request, { params }: Props) {
 /**
  * GET /api/projects/[id]/feedback — Get feedback for a project.
  */
-export async function GET(_request: Request, { params }: Props) {
+export async function GET(_request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

@@ -6,7 +6,7 @@ import JSZip from 'jszip';
 const pdfParse = require('pdf-parse');
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 // Max upload size: 50MB
@@ -85,7 +85,8 @@ function isTextFile(filePath: string): boolean {
  * POST /api/projects/[id]/upload — Upload a ZIP of project files.
  * Extracts text files and stores them as ProjectFile records.
  */
-export async function POST(request: Request, { params }: Props) {
+export async function POST(request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

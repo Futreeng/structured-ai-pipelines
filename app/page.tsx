@@ -60,7 +60,7 @@ export default async function DashboardPage() {
         <div className="space-y-10">
 
           {/* ── Hero ── */}
-          <section className="rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-zinc-950 to-zinc-900 px-8 py-10">
+          <section className="rounded-2xl border border-orange-500/20 bg-linear-to-br from-orange-500/10 via-zinc-950 to-zinc-900 px-8 py-10">
             <div className="mx-auto max-w-3xl text-center">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-orange-500/30 bg-orange-500/10 px-3 py-1 text-xs font-medium uppercase tracking-widest text-orange-300">
                 <Flame className="h-3.5 w-3.5" />

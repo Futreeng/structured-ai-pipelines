@@ -56,7 +56,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
             <Link href="/" className="flex items-center gap-2.5 font-bold" onClick={onClose}>
               <div className="relative">
                 <Flame className="h-6 w-6 text-orange-500 flame-flicker" />
-                <div className="absolute inset-0 h-6 w-6 text-orange-500 blur-sm opacity-50">
+                <div className="absolute inset-0 h-6 w-6 text-orange-500 blur-xs opacity-50">
                   <Flame className="h-6 w-6" />
                 </div>
               </div>
@@ -77,7 +77,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
                   className={cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                     isActive
-                      ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 shadow-sm shadow-orange-500/10'
+                      ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 shadow-xs shadow-orange-500/10'
                       : 'text-zinc-400 hover:bg-orange-500/5 hover:text-orange-300 border border-transparent'
                   )}
                 >
@@ -88,7 +88,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
             })}
           </nav>
 
-          <div className="mx-4 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
+          <div className="mx-4 h-px bg-linear-to-r from-transparent via-orange-500/30 to-transparent" />
 
           {/* User section - same as desktop */}
           <div className="p-4">
@@ -162,7 +162,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
         <Link href="/" className="flex items-center gap-2.5 font-bold">
           <div className="relative">
             <Flame className="h-6 w-6 text-orange-500 flame-flicker" />
-            <div className="absolute inset-0 h-6 w-6 text-orange-500 blur-sm opacity-50">
+            <div className="absolute inset-0 h-6 w-6 text-orange-500 blur-xs opacity-50">
               <Flame className="h-6 w-6" />
             </div>
           </div>
@@ -182,7 +182,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
               className={cn(
                 'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
                 isActive
-                  ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 shadow-sm shadow-orange-500/10'
+                  ? 'bg-orange-500/15 text-orange-400 border border-orange-500/20 shadow-xs shadow-orange-500/10'
                   : 'text-zinc-400 hover:bg-orange-500/5 hover:text-orange-300 border border-transparent'
               )}
             >
@@ -199,7 +199,7 @@ export function Sidebar({ mobile, open, onClose }: SidebarProps = {}) {
       </div>
 
       {/* Decorative ember line */}
-      <div className="mx-4 h-px bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
+      <div className="mx-4 h-px bg-linear-to-r from-transparent via-orange-500/30 to-transparent" />
 
       {/* User section */}
       <div className="p-4">

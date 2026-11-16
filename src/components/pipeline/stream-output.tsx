@@ -28,7 +28,7 @@ export function StreamOutput({ text, isStreaming }: StreamOutputProps) {
       ref={containerRef}
       className="h-[400px] max-h-[500px] overflow-y-auto rounded-lg forge-terminal"
     >
-      <div className="p-4 font-mono text-sm text-zinc-200 whitespace-pre-wrap break-words">
+      <div className="p-4 font-mono text-sm text-zinc-200 whitespace-pre-wrap wrap-break-word">
         {text || (
           <span className="text-zinc-600">
             <span className="text-orange-500/60">{'>'}</span> Awaiting forge output...

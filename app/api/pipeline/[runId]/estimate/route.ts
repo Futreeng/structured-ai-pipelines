@@ -7,13 +7,14 @@ import { CostTracker } from '@/src/services/cost-tracker';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: { runId: string };
+  params: Promise<{ runId: string }>;
 }
 
 /**
  * GET /api/pipeline/[runId]/estimate — Get cost estimate and budget status for a run.
  */
-export async function GET(_request: Request, { params }: Props) {
+export async function GET(_request: Request, props: Props) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

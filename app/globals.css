@@ -1,68 +1,248 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Uncial+Antiqua&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Uncial+Antiqua&display=swap')
+layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+/* animate-in / fade-in / slide-in-from-* used by dialog, sheet, toast (replaces tailwindcss-animate) */
+@import 'tw-animate-css';
 
-/* The One Forge title — molten metal with ember pulse */
-.doom-forge-title {
-  font-family: 'Cinzel Decorative', 'Georgia', serif;
-  font-weight: 900;
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-forge-ember: hsl(var(--forge-ember));
+  --color-forge-flame: hsl(var(--forge-flame));
+  --color-forge-blaze: hsl(var(--forge-blaze));
+  --color-forge-molten: hsl(var(--forge-molten));
+  --color-forge-ash: hsl(var(--forge-ash));
+  --color-forge-smoke: hsl(var(--forge-smoke));
+  --color-forge-iron: hsl(var(--forge-iron));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-ember-glow: ember-glow 2s ease-in-out infinite;
+  --animate-forge-pulse: forge-pulse 2s ease-in-out infinite;
+  --animate-flame-flicker: flame-flicker 3s ease-in-out infinite;
+  --animate-molten-flow: molten-flow 8s ease infinite;
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
+
+@utility ember-glow {
+  animation: ember-glow 2s ease-in-out infinite;
+}
+
+@utility forge-pulse {
+  animation: forge-pulse 2s ease-in-out infinite;
+}
+
+@utility flame-flicker {
+  animation: flame-flicker 3s ease-in-out infinite;
+}
+
+@utility forge-gradient {
   background: linear-gradient(
-    100deg,
-    #b45309 0%,
-    #f97316 15%,
-    #fbbf24 30%,
-    #fff7ed 45%,
-    #fbbf24 55%,
-    #f97316 70%,
-    #ff4500 85%,
-    #b45309 100%
+    135deg,
+    hsl(15 90% 50%),
+    hsl(25 95% 53%),
+    hsl(35 95% 55%)
   );
-  background-size: 300% 100%;
+}
+
+@utility forge-gradient-text {
+  background: linear-gradient(
+    135deg,
+    hsl(25 95% 55%),
+    hsl(35 95% 60%),
+    hsl(40 96% 65%)
+  );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  animation: forge-title-shimmer 6s ease-in-out infinite;
-  filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.5)) drop-shadow(0 0 30px rgba(234, 88, 12, 0.2));
-  text-shadow: none;
 }
 
-@keyframes forge-title-shimmer {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+@utility forge-border-glow {
+  border-color: hsl(25 95% 53% / 0.3);
+  box-shadow:
+    0 0 12px -2px hsl(25 95% 53% / 0.15),
+    inset 0 0 12px -4px hsl(25 95% 53% / 0.05);
 }
 
-/* Poem text — antiqua script with staggered line fade-in */
-.doom-forge-poem {
-  font-family: 'Uncial Antiqua', 'Georgia', serif;
-  font-style: normal;
-  color: #92400e;
-  text-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
-  animation: poem-emerge 2s ease-out forwards;
-  opacity: 0;
+@utility forge-card {
+  background: linear-gradient(180deg, hsl(20 14% 7%) 0%, hsl(20 14% 5%) 100%);
+  border-color: hsl(25 40% 18%);
+
+  &:hover {
+    border-color: hsl(25 80% 30%);
+    box-shadow: 0 0 20px -4px hsl(25 95% 53% / 0.15);
+  }
 }
 
-.doom-forge-poem:nth-of-type(2) { animation-delay: 0.5s; }
-.doom-forge-poem:nth-of-type(3) { animation-delay: 1s; }
-
-@keyframes poem-emerge {
-  0% { opacity: 0; transform: translateY(8px) scale(0.98); letter-spacing: 0.15em; }
-  60% { opacity: 1; }
-  100% { opacity: 1; transform: translateY(0) scale(1); letter-spacing: 0.05em; }
+@utility molten-gradient {
+  background: linear-gradient(
+    -45deg,
+    hsl(0 90% 45%),
+    hsl(15 90% 50%),
+    hsl(30 95% 55%),
+    hsl(45 95% 55%)
+  );
+  background-size: 400% 400%;
+  animation: molten-flow 8s ease infinite;
 }
 
-/* Sidebar brand — smaller shimmer for the nav title */
-.forge-gradient-text {
-  font-family: 'Cinzel Decorative', 'Georgia', serif;
-  font-weight: 700;
-  background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
-  background-size: 200% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: forge-title-shimmer 6s ease-in-out infinite;
+@utility forge-sidebar {
+  background: linear-gradient(180deg, hsl(20 14% 5%) 0%, hsl(20 16% 3%) 100%);
+  border-right: 1px solid hsl(25 40% 14%);
+}
+
+@utility forge-header {
+  background: hsl(20 14% 5% / 0.8);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid hsl(25 30% 14%);
+}
+
+@utility forge-terminal {
+  background: linear-gradient(180deg, hsl(20 20% 4%) 0%, hsl(15 15% 3%) 100%);
+  border: 1px solid hsl(25 40% 14%);
+
+  & .cursor-blink {
+    background: hsl(25 95% 53%);
+    animation: ember-glow 1s ease-in-out infinite;
+  }
+}
+
+@utility cursor-blink {
+  .forge-terminal & {
+    background: hsl(25 95% 53%);
+    animation: ember-glow 1s ease-in-out infinite;
+  }
+}
+
+@layer utilities {
+  /* The One Forge title — molten metal with ember pulse */
+  .doom-forge-title {
+    font-family: 'Cinzel Decorative', 'Georgia', serif;
+    font-weight: 900;
+    background: linear-gradient(
+      100deg,
+      #b45309 0%,
+      #f97316 15%,
+      #fbbf24 30%,
+      #fff7ed 45%,
+      #fbbf24 55%,
+      #f97316 70%,
+      #ff4500 85%,
+      #b45309 100%
+    );
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: forge-title-shimmer 6s ease-in-out infinite;
+    filter: drop-shadow(0 0 12px rgba(249, 115, 22, 0.5))
+      drop-shadow(0 0 30px rgba(234, 88, 12, 0.2));
+    text-shadow: none;
+  }
+
+  @keyframes forge-title-shimmer {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  /* Poem text — antiqua script with staggered line fade-in */
+  .doom-forge-poem {
+    font-family: 'Uncial Antiqua', 'Georgia', serif;
+    font-style: normal;
+    color: #92400e;
+    text-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
+    animation: poem-emerge 2s ease-out forwards;
+    opacity: 0;
+  }
+
+  .doom-forge-poem:nth-of-type(2) {
+    animation-delay: 0.5s;
+  }
+  .doom-forge-poem:nth-of-type(3) {
+    animation-delay: 1s;
+  }
+
+  @keyframes poem-emerge {
+    0% {
+      opacity: 0;
+      transform: translateY(8px) scale(0.98);
+      letter-spacing: 0.15em;
+    }
+    60% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      letter-spacing: 0.05em;
+    }
+  }
+
+  /* Sidebar brand — smaller shimmer for the nav title */
+  .forge-gradient-text {
+    font-family: 'Cinzel Decorative', 'Georgia', serif;
+    font-weight: 700;
+    background: linear-gradient(90deg, #f97316, #fbbf24, #f97316);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: forge-title-shimmer 6s ease-in-out infinite;
+  }
 }
 
 @layer base {
@@ -108,94 +288,54 @@
   }
 }
 
-/* Forge fire animations */
-@keyframes ember-glow {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
-}
-
-@keyframes forge-pulse {
-  0%, 100% { box-shadow: 0 0 8px 0 rgba(249, 115, 22, 0.3); }
-  50% { box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.5); }
-}
-
-@keyframes flame-flicker {
-  0%, 100% { transform: scaleY(1) scaleX(1); }
-  25% { transform: scaleY(1.05) scaleX(0.97); }
-  50% { transform: scaleY(0.95) scaleX(1.03); }
-  75% { transform: scaleY(1.02) scaleX(0.98); }
-}
-
-@keyframes molten-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
 @layer utilities {
-  .ember-glow {
-    animation: ember-glow 2s ease-in-out infinite;
+  /* Forge fire animations */
+  @keyframes ember-glow {
+    0%,
+    100% {
+      opacity: 0.4;
+    }
+    50% {
+      opacity: 1;
+    }
   }
 
-  .forge-pulse {
-    animation: forge-pulse 2s ease-in-out infinite;
+  @keyframes forge-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 8px 0 rgba(249, 115, 22, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px 4px rgba(249, 115, 22, 0.5);
+    }
   }
 
-  .flame-flicker {
-    animation: flame-flicker 3s ease-in-out infinite;
+  @keyframes flame-flicker {
+    0%,
+    100% {
+      transform: scaleY(1) scaleX(1);
+    }
+    25% {
+      transform: scaleY(1.05) scaleX(0.97);
+    }
+    50% {
+      transform: scaleY(0.95) scaleX(1.03);
+    }
+    75% {
+      transform: scaleY(1.02) scaleX(0.98);
+    }
   }
 
-  .forge-gradient {
-    background: linear-gradient(135deg, hsl(15 90% 50%), hsl(25 95% 53%), hsl(35 95% 55%));
-  }
-
-  .forge-gradient-text {
-    background: linear-gradient(135deg, hsl(25 95% 55%), hsl(35 95% 60%), hsl(40 96% 65%));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .forge-border-glow {
-    border-color: hsl(25 95% 53% / 0.3);
-    box-shadow: 0 0 12px -2px hsl(25 95% 53% / 0.15), inset 0 0 12px -4px hsl(25 95% 53% / 0.05);
-  }
-
-  .forge-card {
-    background: linear-gradient(180deg, hsl(20 14% 7%) 0%, hsl(20 14% 5%) 100%);
-    border-color: hsl(25 40% 18%);
-  }
-
-  .forge-card:hover {
-    border-color: hsl(25 80% 30%);
-    box-shadow: 0 0 20px -4px hsl(25 95% 53% / 0.15);
-  }
-
-  .molten-gradient {
-    background: linear-gradient(-45deg, hsl(0 90% 45%), hsl(15 90% 50%), hsl(30 95% 55%), hsl(45 95% 55%));
-    background-size: 400% 400%;
-    animation: molten-flow 8s ease infinite;
-  }
-
-  .forge-sidebar {
-    background: linear-gradient(180deg, hsl(20 14% 5%) 0%, hsl(20 16% 3%) 100%);
-    border-right: 1px solid hsl(25 40% 14%);
-  }
-
-  .forge-header {
-    background: hsl(20 14% 5% / 0.8);
-    backdrop-filter: blur(8px);
-    border-bottom: 1px solid hsl(25 30% 14%);
-  }
-
-  .forge-terminal {
-    background: linear-gradient(180deg, hsl(20 20% 4%) 0%, hsl(15 15% 3%) 100%);
-    border: 1px solid hsl(25 40% 14%);
-  }
-
-  .forge-terminal .cursor-blink {
-    background: hsl(25 95% 53%);
-    animation: ember-glow 1s ease-in-out infinite;
+  @keyframes molten-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
   }
 }
 

@@ -104,14 +104,14 @@ export function ProjectCard({
         {/* Top accent bar */}
         <div className={cn(
           'absolute top-0 left-0 right-0 h-[2px]',
-          isRunning ? 'bg-gradient-to-r from-orange-500 via-amber-400 to-orange-500 animate-pulse' :
-          isCompleted ? 'bg-gradient-to-r from-emerald-600 via-emerald-400 to-emerald-600' :
-          isFailed ? 'bg-gradient-to-r from-red-600 via-red-400 to-red-600' :
-          'bg-gradient-to-r from-transparent via-orange-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity'
+          isRunning ? 'bg-linear-to-r from-orange-500 via-amber-400 to-orange-500 animate-pulse' :
+          isCompleted ? 'bg-linear-to-r from-emerald-600 via-emerald-400 to-emerald-600' :
+          isFailed ? 'bg-linear-to-r from-red-600 via-red-400 to-red-600' :
+          'bg-linear-to-r from-transparent via-orange-500/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity'
         )} />
 
         {/* Background glow on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-orange-500/0 via-transparent to-amber-500/0 group-hover:from-orange-500/[0.03] group-hover:to-amber-500/[0.02] transition-all duration-500" />
+        <div className="absolute inset-0 bg-linear-to-br from-orange-500/0 via-transparent to-amber-500/0 group-hover:from-orange-500/3 group-hover:to-amber-500/2 transition-all duration-500" />
 
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
           <CardTitle className="flex items-center gap-2.5 text-base font-semibold">

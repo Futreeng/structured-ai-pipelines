@@ -2,10 +2,8 @@ import { NextResponse } from 'next/server';
 import { getAuthenticatedUser, unauthorizedResponse } from '@/src/lib/auth-helpers';
 import { prisma } from '@/src/lib/prisma';
 
-export async function GET(
-  _request: Request,
-  { params }: { params: { runId: string } }
-) {
+export async function GET(_request: Request, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

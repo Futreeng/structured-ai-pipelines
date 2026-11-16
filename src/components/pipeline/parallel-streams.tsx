@@ -73,7 +73,7 @@ export function ParallelStreams({ streams, activeStreamId, onSelectStream }: Par
           )}
         </div>
         <ScrollArea className="h-[400px] rounded-lg forge-terminal">
-          <div className="p-4 font-mono text-sm text-zinc-200 whitespace-pre-wrap break-words">
+          <div className="p-4 font-mono text-sm text-zinc-200 whitespace-pre-wrap wrap-break-word">
             {stream.text || (
               <span className="text-zinc-600">
                 <span className="text-orange-500/60">{'>'}</span> Awaiting forge output...
@@ -133,7 +133,7 @@ export function ParallelStreams({ streams, activeStreamId, onSelectStream }: Par
               </Button>
             </div>
             <ScrollArea className="h-[180px]">
-              <div className="p-2 font-mono text-[11px] text-zinc-300 whitespace-pre-wrap break-words leading-relaxed">
+              <div className="p-2 font-mono text-[11px] text-zinc-300 whitespace-pre-wrap wrap-break-word leading-relaxed">
                 {stream.text ? stream.text.slice(-800) : (
                   <span className="text-zinc-600 text-[10px]">Waiting...</span>
                 )}

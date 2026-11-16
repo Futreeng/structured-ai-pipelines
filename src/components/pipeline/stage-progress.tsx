@@ -49,7 +49,7 @@ export function StageProgress({ stages, currentStageIndex }: StageProgressProps)
                 <div className={cn(
                   'h-0.5 w-12 mx-1 rounded-full transition-all',
                   stage.status === 'approved'
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-500 shadow-sm shadow-orange-500/30'
+                    ? 'bg-linear-to-r from-orange-500 to-amber-500 shadow-xs shadow-orange-500/30'
                     : 'bg-zinc-800'
                 )} />
               )}

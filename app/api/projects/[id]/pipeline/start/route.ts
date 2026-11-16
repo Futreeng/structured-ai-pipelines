@@ -14,10 +14,8 @@ import { type ExecutionPlan } from '@/src/types/dag';
 
 const CACHE_TTL_DAYS = parseInt(process.env.FORGE_CACHE_TTL_DAYS || '30', 10);
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

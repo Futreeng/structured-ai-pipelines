@@ -211,11 +211,12 @@ function buildPreviewData(files: StoredFile[]): ProjectPreviewData {
   };
 }
 
-export default async function ProjectFallbackPreviewPage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function ProjectFallbackPreviewPage(
+  props: {
+    params: Promise<{ id: string }>;
+  }
+) {
+  const params = await props.params;
   const session = await getSessionOrDemo();
   if (!session?.user?.id) notFound();
 

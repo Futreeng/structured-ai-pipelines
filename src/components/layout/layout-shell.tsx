@@ -21,7 +21,7 @@ export function LayoutShell({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-2.5 ml-3">
           <div className="relative">
             <Flame className="h-5 w-5 text-orange-500 flame-flicker" />
-            <div className="absolute inset-0 h-5 w-5 text-orange-500 blur-sm opacity-50">
+            <div className="absolute inset-0 h-5 w-5 text-orange-500 blur-xs opacity-50">
               <Flame className="h-5 w-5" />
             </div>
           </div>

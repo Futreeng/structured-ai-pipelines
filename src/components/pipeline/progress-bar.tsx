@@ -44,7 +44,7 @@ export function ProgressBar({ stages }: ProgressBarProps) {
       </div>
       <div className="h-2 bg-zinc-700 rounded-full overflow-hidden mb-3">
         <div
-          className="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500"
+          className="h-full bg-linear-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500"
           style={{ width: `${pct}%` }}
         />
       </div>

@@ -10,10 +10,8 @@ import { Orchestrator } from '@/src/services/orchestrator';
  * Ask the Qwen orchestrator what to do next.
  * Returns the action decision — the client or a follow-up call executes it.
  */
-export async function POST(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function POST(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 
@@ -54,10 +52,8 @@ export async function POST(
  *
  * Get the current orchestrator status and pipeline state summary.
  */
-export async function GET(
-  _request: NextRequest,
-  { params }: { params: { runId: string } }
-) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ runId: string }> }) {
+  const params = await props.params;
   const user = await getAuthenticatedUser();
   if (!user) return unauthorizedResponse();
 

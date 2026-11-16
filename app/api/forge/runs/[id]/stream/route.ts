@@ -7,10 +7,8 @@ import type { SSEEvent } from '@/src/services/forge/types/sse'
 import { runBuildPipelineStage1 } from '@/src/services/forge/build-pipeline'
 import { runDebugPipelineStage1 } from '@/src/services/forge/debug-pipeline'
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } },
-): Promise<Response> {
+export async function GET(_req: Request, props: { params: Promise<{ id: string }> }): Promise<Response> {
+  const params = await props.params
   const session = await getForgeSessionOrDemo()
   if (!session?.user?.id) {
     return new Response('Unauthorized', { status: 401 })
