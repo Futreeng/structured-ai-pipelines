@@ -47,9 +47,18 @@ export async function POST(_req: Request, props: { params: Promise<{ id: string 
       )
     }
 
-    await updateForgeRun(runId, { status: 'publishing' })
+    let token: string
+    try {
+      token = await getGitHubToken(session.user.id)
+    } catch {
+      // No GitHub credentials: leave the run awaiting approval so the user can still download the ZIP.
+      return NextResponse.json(
+        { error: 'Pull-request publishing is unavailable without a GitHub account. Use "Download project (.zip)" instead.' },
+        { status: 400 },
+      )
+    }
 
-    const token = await getGitHubToken(session.user.id)
+    await updateForgeRun(runId, { status: 'publishing' })
     const workDir = join(tmpdir(), `forge-${runId}`)
 
     const title = run.mode === 'build'
