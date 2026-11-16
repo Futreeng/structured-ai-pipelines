@@ -517,6 +517,26 @@ export class DAGExecutor {
         '**You MUST fix every issue listed above. Do not repeat the same mistakes.**\n';
     }
 
+    // The PRD skill is written for interactive use ("ask for confirmation"). In a
+    // pipeline run there is nobody to answer, so a vague prompt used to produce a list
+    // of questions instead of a PRD, which was then approved and handed downstream.
+    if (stage.skillName === 'prd-architect' && !stage.userFeedback) {
+      finalContext += '\n\n---\n\n## CRITICAL: NON-INTERACTIVE RUN — PRODUCE THE FULL PRD NOW\n\n' +
+        'Nobody can answer questions during this run. Do NOT ask questions, request confirmation, or stop early. ' +
+        'Where the request leaves something unspecified (tech stack, UI patterns, scope), choose a sensible, conventional default ' +
+        'and record it in an "Assumptions" section at the top of the PRD. ' +
+        'Output the COMPLETE phased PRD in this response.';
+    }
+
+    // Phase extraction needs the PRD. If it did not arrive, fail loudly instead of letting
+    // the model write a "blocked, no PRD" phase that then flows through the rest of the DAG.
+    if (stage.skillName === 'phase-builder' && previousArtifacts.every((a) => a.trim().length < 200)) {
+      throw new Error(
+        'Phase Extraction received no PRD (the PRD stage output was empty or too short). ' +
+        'Rerun the pipeline, or reject the PRD stage with feedback to regenerate it.'
+      );
+    }
+
     // Inject comprehensiveness instruction for phase-builder (Groq/Llama needs this)
     if (stage.skillName === 'phase-builder') {
       finalContext += '\n\n---\n\n## CRITICAL: COMPREHENSIVE OUTPUT REQUIRED\n\n' +
