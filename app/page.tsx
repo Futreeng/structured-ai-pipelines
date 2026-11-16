@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getSession } from '@/src/lib/auth-helpers';
+import { notFound } from 'next/navigation';
+import { getSessionOrDemo } from '@/src/lib/auth-helpers';
 import { prisma } from '@/src/lib/prisma';
 import { Header } from '@/src/components/layout/header';
 import { PageContainer } from '@/src/components/layout/page-container';
@@ -27,8 +27,8 @@ import { forgeBuyerPersonas } from '@/src/lib/product-offerings';
 import { type ProjectSummary } from '@/src/types/project';
 
 export default async function DashboardPage() {
-  const session = await getSession();
-  if (!session?.user?.id) redirect('/login');
+  const session = await getSessionOrDemo();
+  if (!session?.user?.id) notFound();
 
   const dashboardData = await loadDashboardData(session.user.id);
   const { projects, totalRuns, completedRuns, databaseAvailable } = dashboardData;

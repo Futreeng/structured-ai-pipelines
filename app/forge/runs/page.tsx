@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { redirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { Plus } from 'lucide-react'
-import { getForgeSession } from '@/src/lib/auth-helpers'
+import { getForgeSessionOrDemo } from '@/src/lib/auth-helpers'
 import { listForgeRuns } from '@/src/services/forge/db'
 import type { ForgeRun } from '@/src/services/forge/db'
 import { Header } from '@/src/components/layout/header'
@@ -11,8 +11,10 @@ import ModeBadge from '@/src/components/forge/mode-badge'
 import RunStatusBadge from '@/src/components/forge/run-status-badge'
 
 export default async function ForgeRunsPage() {
-  const session = await getForgeSession()
-  if (!session?.user?.id) redirect('/login')
+  const session = await getForgeSessionOrDemo()
+  if (!session?.user?.id) {
+    notFound()
+  }
 
   let runs: ForgeRun[] = []
   let databaseAvailable = true
