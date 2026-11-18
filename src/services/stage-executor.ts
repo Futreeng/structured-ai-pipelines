@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { SkillLoader } from '@/src/services/skill-loader';
 import { handleAnthropicCreditError } from '@/src/lib/anthropic';
 import { type TokenUsage } from '@/src/services/cost-tracker';
-import { assertNotRefused, CLAUDE_MODELS, EFFORT } from '@/src/lib/models';
+import { assertNotRefused, CLAUDE_MODELS, DOCUMENT_MAX_TOKENS, EFFORT, OutputTruncatedError } from '@/src/lib/models';
 
 export class StageExecutor {
   private client: Anthropic;
@@ -41,8 +41,8 @@ export class StageExecutor {
 
     const streamParams = {
       model: CLAUDE_MODELS.main,
-      max_tokens: 16000,
-      output_config: { effort: EFFORT.pipeline },
+      max_tokens: DOCUMENT_MAX_TOKENS,
+      output_config: { effort: EFFORT.document },
       system: systemPrompt,
       messages,
     };
@@ -69,6 +69,7 @@ export class StageExecutor {
 
     let inputTokens = 0;
     let outputTokens = 0;
+    let stopReason: string | null = null;
 
     try {
       for await (const event of activeStream as AsyncIterable<{
@@ -92,7 +93,9 @@ export class StageExecutor {
         }
         // Claude 5 models can decline a request mid-stream
         if (event.type === 'message_delta') {
-          assertNotRefused(event.delta as { stop_reason?: string | null; stop_details?: unknown });
+          const delta = event.delta as { stop_reason?: string | null; stop_details?: unknown };
+          assertNotRefused(delta);
+          if (delta?.stop_reason) stopReason = delta.stop_reason;
         }
       }
     } catch (err: unknown) {
@@ -153,6 +156,12 @@ export class StageExecutor {
       model,
       backend,
     };
+
+    // Ran out of output tokens: the document is cut off. Fail the stage (cost is already
+    // recorded above) rather than approving a half-finished PRD and handing it downstream.
+    if (stopReason === 'max_tokens') {
+      throw new OutputTruncatedError(outputTokens, streamParams.max_tokens);
+    }
 
     return fullText;
   }
