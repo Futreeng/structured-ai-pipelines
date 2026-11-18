@@ -80,7 +80,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: pip install pytest httpx pytest-asyncio
+        run: pip install pytest httpx pytest-asyncio pytest-timeout
       - name: Start stack
         run: |
           # Only the services the integration tests use. The nextjs service has no
