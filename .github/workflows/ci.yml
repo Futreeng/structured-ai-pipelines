@@ -42,7 +42,7 @@ jobs:
         run: pip install -r gateway/requirements.txt pytest httpx
       - name: Lint gateway
         run: |
-          pip install ruff
+          pip install ruff==0.17.4
           ruff check gateway/
       - name: Test gateway imports
         run: python -c "import sys; sys.path.insert(0, '.'); from gateway.main import app; print('Gateway OK')"
@@ -62,7 +62,7 @@ jobs:
         run: pip install -r gateway/engine/requirements.txt pytest httpx
       - name: Lint engine
         run: |
-          pip install ruff
+          pip install ruff==0.17.4
           ruff check gateway/engine/
       - name: Test engine imports
         run: python -c "import sys; sys.path.insert(0, 'gateway'); from engine.main import app; print('Engine OK')"
