@@ -80,10 +80,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install test dependencies
-        run: pip install pytest httpx pytest-asyncio
+        run: pip install pytest httpx pytest-asyncio pytest-timeout
       - name: Start stack
         run: |
-          docker compose up -d --build
+          # Only the services the integration tests use. The nextjs service has no
+          # Dockerfile (Next.js is deployed on Vercel), so it is not started here.
+          docker compose up -d --build postgres engine gateway
           # Wait for services to be healthy
           sleep 15
       - name: Health check gateway

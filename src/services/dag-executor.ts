@@ -10,6 +10,8 @@ import { CostTracker, type TokenUsage } from '@/src/services/cost-tracker';
 import { TraceLogger } from '@/src/services/trace-logger';
 import { AgentCoordinator } from '@/src/services/agent-coordinator';
 import { OutputValidator } from '@/src/services/output-validator';
+import { checkArtifactCompleteness, completenessFeedback } from '@/src/services/artifact-completeness';
+import { executionFeedback, executionGateEnabled, runExecutionGate } from '@/src/services/execution-gate';
 import { SecretScanner } from '@/src/services/secret-scanner';
 import { SentinelAgent } from '@/src/services/sentinel-agent';
 import { InspectorAgent } from '@/src/services/inspector-agent';
@@ -779,6 +781,53 @@ export class DAGExecutor {
             where: { id: stageId },
             data: { artifactContent: cleanedArtifact },
           });
+        }
+
+        // Completeness gate: cut-off files and imports to missing files send the stage
+        // back for regeneration (same retry path as the Guardian), instead of being saved.
+        const projectFiles = await prisma.projectFile.findMany({
+          where: { projectId: stage.run.projectId },
+          select: { filePath: true },
+        });
+        const completeness = checkArtifactCompleteness(
+          extractFilesFromArtifact(cleanedArtifact),
+          projectFiles.map((f) => f.filePath),
+        );
+        if (!completeness.ok) {
+          const feedback = completenessFeedback(completeness);
+          console.warn(`[DAGExecutor] Completeness check failed for "${stage.displayName}":\n${feedback}`);
+          if (stage.retryCount < stage.maxRetries) {
+            await DAGExecutor.rejectNode(stageId, feedback);
+            return { readyNodes: [{ id: stageId, nodeId: stage.nodeId || stageId, skillName: stage.skillName, displayName: stage.displayName, nodeType: stage.nodeType }], runComplete: false, allApproved: false };
+          }
+          // Retries used up: keep the output, flag it, and never auto-approve it.
+          await prisma.pipelineStage.update({
+            where: { id: stageId },
+            data: {
+              status: 'awaiting_approval',
+              artifactContent: cleanedArtifact + `\n\n⚠️ **Completeness check failed after ${stage.maxRetries} retries:**\n${feedback}`,
+            },
+          });
+        }
+
+        // Execution gate (opt-in, EXECUTION_GATE=1): install, build and test the output.
+        if (executionGateEnabled()) {
+          const gate = await runExecutionGate(extractFilesFromArtifact(cleanedArtifact));
+          if (!gate.passed) {
+            const feedback = executionFeedback(gate);
+            console.warn(`[DAGExecutor] Execution gate failed for "${stage.displayName}":\n${feedback}`);
+            if (stage.retryCount < stage.maxRetries) {
+              await DAGExecutor.rejectNode(stageId, feedback);
+              return { readyNodes: [{ id: stageId, nodeId: stage.nodeId || stageId, skillName: stage.skillName, displayName: stage.displayName, nodeType: stage.nodeType }], runComplete: false, allApproved: false };
+            }
+            await prisma.pipelineStage.update({
+              where: { id: stageId },
+              data: {
+                status: 'awaiting_approval',
+                artifactContent: cleanedArtifact + `\n\n⚠️ **Execution gate failed after ${stage.maxRetries} retries:**\n${feedback}`,
+              },
+            });
+          }
         }
 
         // Save to database (using cleaned artifact)
