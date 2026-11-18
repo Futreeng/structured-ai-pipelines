@@ -17,6 +17,8 @@ interface ExtractedFile {
   filePath: string;
   content: string;
   language: string;
+  /** false when the closing ``` fence was never found (the model output was cut off). */
+  complete?: boolean;
 }
 
 /**
@@ -155,7 +157,7 @@ export function extractFilesFromArtifact(artifactContent: string): ExtractedFile
         contentLines.push(lines[i]);
         i++;
       }
-      files.push({ filePath, content: contentLines.join('\n'), language });
+      files.push({ filePath, content: contentLines.join('\n'), language, complete: i < lines.length });
       continue;
     }
 
@@ -174,7 +176,7 @@ export function extractFilesFromArtifact(artifactContent: string): ExtractedFile
           contentLines.push(lines[i]);
           i++;
         }
-        files.push({ filePath, content: contentLines.join('\n'), language: inferLanguage(filePath) });
+        files.push({ filePath, content: contentLines.join('\n'), language: inferLanguage(filePath), complete: i < lines.length });
         continue;
       }
     }
@@ -202,6 +204,7 @@ export function extractFilesFromArtifact(artifactContent: string): ExtractedFile
           filePath,
           content: contentLines.join('\n'),
           language: typeof language === 'string' ? language : inferLanguage(filePath),
+          complete: i < lines.length,
         });
         continue;
       }
@@ -227,6 +230,7 @@ export function extractFilesFromArtifact(artifactContent: string): ExtractedFile
             filePath: inferredPath,
             content,
             language: lang || inferLanguage(inferredPath),
+            complete: i < lines.length,
           });
           continue;
         }
