@@ -10,7 +10,6 @@ vi.mock('@/src/lib/anthropic', () => ({
 import { StageExecutor } from '@/src/services/stage-executor'
 
 interface FakeCall {
-  prompt: string
   text: string
   stopReason?: string
   inputTokens?: number
