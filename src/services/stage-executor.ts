@@ -3,6 +3,16 @@ import { SkillLoader } from '@/src/services/skill-loader';
 import { handleAnthropicCreditError } from '@/src/lib/anthropic';
 import { type TokenUsage } from '@/src/services/cost-tracker';
 import { assertNotRefused, CLAUDE_MODELS, DOCUMENT_MAX_TOKENS, EFFORT, OutputTruncatedError } from '@/src/lib/models';
+import {
+  buildOutlineInstruction,
+  buildPhasePrompt,
+  ensurePhaseHeading,
+  MAX_PHASES,
+  mergePhaseSections,
+  parseOutline,
+  PHASE_CONCURRENCY,
+  runWithConcurrency,
+} from '@/src/services/phase-split';
 
 export class StageExecutor {
   private client: Anthropic;
@@ -14,11 +24,81 @@ export class StageExecutor {
     this.client = client;
   }
 
+  /**
+   * Entry point for a stage. Most skills run as one model call. The phase-builder
+   * ("Split PRD into Phases") runs an outline call and then one call per phase, so a
+   * long phase list cannot hit the single-response token cap.
+   */
   async *executeStage(
     skillName: string,
     context: string,
     previousArtifacts: string[],
     signal?: AbortSignal
+  ): AsyncGenerator<string, string, undefined> {
+    this.lastUsage = null;
+    if (skillName !== 'phase-builder') {
+      return yield* this.executeSingle(skillName, context, previousArtifacts, signal);
+    }
+
+    const total = { inputTokens: 0, outputTokens: 0 };
+    const last: { model?: string; backend?: TokenUsage['backend'] } = {};
+    const record = (u: TokenUsage) => {
+      total.inputTokens += u.inputTokens;
+      total.outputTokens += u.outputTokens;
+      last.model = u.model;
+      last.backend = u.backend;
+    };
+
+    // 1. Outline. Not yielded: only the phase sections become the artifact.
+    const outlineGen = this.executeSingle(
+      skillName, `${context}\n\n${buildOutlineInstruction()}`, previousArtifacts, signal, record,
+    );
+    let outlineText = '';
+    for (;;) {
+      const r = await outlineGen.next();
+      if (r.done) { outlineText = r.value; break; }
+    }
+
+    const phases = parseOutline(outlineText);
+    if (phases.length === 0) {
+      console.warn('[StageExecutor] phase-builder: outline had no phase headings; using a single call');
+      return yield* this.executeSingle(skillName, context, previousArtifacts, signal);
+    }
+    if (phases.length > MAX_PHASES) {
+      throw new Error(`The phase outline has ${phases.length} phases; the limit is ${MAX_PHASES}. Narrow the PRD scope and rerun.`);
+    }
+    console.log(`[StageExecutor] phase-builder: outline has ${phases.length} phases, generating each one separately`);
+
+    // 2. One call per phase, a few at a time. Any failure fails the stage.
+    const sections = await runWithConcurrency(phases, PHASE_CONCURRENCY, async (phase) => {
+      const gen = this.executeSingle(
+        skillName, buildPhasePrompt(context, outlineText, phase), previousArtifacts, signal, record,
+      );
+      for (;;) {
+        const r = await gen.next();
+        if (r.done) return ensurePhaseHeading(r.value, phase);
+      }
+    });
+
+    // 3. Join in order, in the same format the single call used.
+    const merged = mergePhaseSections(sections);
+    yield merged;
+
+    this.lastUsage = {
+      inputTokens: total.inputTokens,
+      outputTokens: total.outputTokens,
+      model: last.model ?? CLAUDE_MODELS.main,
+      backend: last.backend ?? 'anthropic',
+    };
+    return merged;
+  }
+
+  private async *executeSingle(
+    skillName: string,
+    context: string,
+    previousArtifacts: string[],
+    signal?: AbortSignal,
+    onUsage?: (u: TokenUsage) => void,
   ): AsyncGenerator<string, string, undefined> {
     this.lastUsage = null;
     const systemPrompt = await SkillLoader.getSkillPromptAsync(skillName);
@@ -156,6 +236,7 @@ export class StageExecutor {
       model,
       backend,
     };
+    onUsage?.(this.lastUsage);
 
     // Ran out of output tokens: the document is cut off. Fail the stage (cost is already
     // recorded above) rather than approving a half-finished PRD and handing it downstream.
