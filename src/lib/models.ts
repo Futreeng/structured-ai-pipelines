@@ -22,9 +22,31 @@ export type ClaudeEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 export const EFFORT = {
   /** Multi-step generation and agentic coding work. */
   pipeline: 'medium',
+  /**
+   * Long-document stages (PRD, phases, prompts). Thinking text counts toward max_tokens,
+   * so keep it minimal: a 16k cap at 'medium' effort cut a PRD off mid-document.
+   */
+  document: 'low',
   /** Short structured answers (JSON votes, triage, checks). */
   quick: 'low',
 } as const satisfies Record<string, ClaudeEffort>;
+
+/** Max output tokens for long-document stages. ~125 tokens/s keeps this inside the 300s route limit. */
+export const DOCUMENT_MAX_TOKENS = 30000;
+
+/** Thrown when a response stops because it hit max_tokens, i.e. the output is incomplete. */
+export class OutputTruncatedError extends Error {
+  readonly outputTokens: number;
+
+  constructor(outputTokens: number, maxTokens: number) {
+    super(
+      `The model's output was cut off at the ${maxTokens.toLocaleString()}-token limit (${outputTokens.toLocaleString()} tokens), ` +
+      'so the result is incomplete. Rerun the stage, or ask for a smaller scope.',
+    );
+    this.name = 'OutputTruncatedError';
+    this.outputTokens = outputTokens;
+  }
+}
 
 /** Thrown when Claude declines a request (stop_reason "refusal"). */
 export class ClaudeRefusalError extends Error {
