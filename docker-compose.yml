@@ -61,7 +61,7 @@ services:
   # ── Engine (FastAPI — wraps Next.js API) ──
   engine:
     build:
-      context: ./engine
+      context: ./gateway/engine
       dockerfile: Dockerfile
     restart: unless-stopped
     environment:
