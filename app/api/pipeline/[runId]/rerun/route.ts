@@ -6,7 +6,7 @@ import { IntakeAgent } from '@/src/services/intake-agent';
 import { DAGExecutor } from '@/src/services/dag-executor';
 import { type ExecutionPlan } from '@/src/types/dag';
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 /**
  * POST /api/pipeline/[runId]/rerun
