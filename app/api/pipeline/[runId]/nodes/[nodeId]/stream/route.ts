@@ -16,7 +16,7 @@ import { ValidationAgent } from '@/src/services/validation-agent';
 import { buildVerificationFailureArtifact } from '@/src/services/verification-gate';
 
 // Vercel serverless: max execution time (hobby=60s, pro=300s)
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 export async function GET(
   request: NextRequest,
