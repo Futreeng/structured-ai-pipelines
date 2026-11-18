@@ -24,7 +24,7 @@
  */
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'http://localhost:11434';
 const ORCHESTRATOR_LOCAL_MODEL = process.env.ORCHESTRATOR_MODEL || 'qwen2.5-coder:1.5b';
-const GROQ_ORCHESTRATOR_MODEL = process.env.GROQ_ORCHESTRATOR_MODEL || 'llama-3.3-70b-versatile';
+const GROQ_ORCHESTRATOR_MODEL = process.env.GROQ_ORCHESTRATOR_MODEL || 'openai/gpt-oss-120b';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 

@@ -140,7 +140,7 @@ export class StageExecutor {
     // Check if this client is a Groq wrapper by looking for the class name or env
     const clientName = (this.client as unknown as { constructor: { name: string } })?.constructor?.name || '';
     if (clientName === 'GroqAnthropicCompat' || (process.env.GROQ_API_KEY && isFallback)) {
-      model = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile';
+      model = process.env.GROQ_MODEL || 'openai/gpt-oss-120b';
       backend = 'groq';
     } else if (usedOllama) {
       model = process.env.OLLAMA_MODEL || 'llama3.1:8b';
