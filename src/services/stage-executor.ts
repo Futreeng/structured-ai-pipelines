@@ -13,6 +13,14 @@ import {
   PHASE_CONCURRENCY,
   runWithConcurrency,
 } from '@/src/services/phase-split';
+import {
+  buildPrdHeadPrompt,
+  buildPrdOutlineInstruction,
+  buildPrdPhasePrompt,
+  buildPrdTailPrompt,
+  ensurePrdPhaseHeading,
+  mergePrdParts,
+} from '@/src/services/prd-split';
 
 export class StageExecutor {
   private client: Anthropic;
@@ -36,6 +44,9 @@ export class StageExecutor {
     signal?: AbortSignal
   ): AsyncGenerator<string, string, undefined> {
     this.lastUsage = null;
+    if (skillName === 'prd-architect') {
+      return yield* this.executePrdSplit(skillName, context, previousArtifacts, signal);
+    }
     if (skillName !== 'phase-builder') {
       return yield* this.executeSingle(skillName, context, previousArtifacts, signal);
     }
@@ -82,6 +93,83 @@ export class StageExecutor {
 
     // 3. Join in order, in the same format the single call used.
     const merged = mergePhaseSections(sections);
+    yield merged;
+
+    this.lastUsage = {
+      inputTokens: total.inputTokens,
+      outputTokens: total.outputTokens,
+      model: last.model ?? CLAUDE_MODELS.main,
+      backend: last.backend ?? 'anthropic',
+    };
+    return merged;
+  }
+
+  /**
+   * Run one model call to completion and return its text. Usage is reported through
+   * onUsage, which is safe to use with concurrent calls.
+   */
+  private async runCapture(
+    skillName: string,
+    prompt: string,
+    previousArtifacts: string[],
+    signal: AbortSignal | undefined,
+    onUsage: (u: TokenUsage) => void,
+  ): Promise<string> {
+    const gen = this.executeSingle(skillName, prompt, previousArtifacts, signal, onUsage);
+    for (;;) {
+      const r = await gen.next();
+      if (r.done) return r.value;
+    }
+  }
+
+  /**
+   * PRD ("Generate PRD") split: outline, then head (sections 1-5), one call per phase
+   * in section 6, then tail (sections 7-9). Falls back to one call if no phases are found.
+   */
+  private async *executePrdSplit(
+    skillName: string,
+    context: string,
+    previousArtifacts: string[],
+    signal?: AbortSignal,
+  ): AsyncGenerator<string, string, undefined> {
+    const total = { inputTokens: 0, outputTokens: 0 };
+    const last: { model?: string; backend?: TokenUsage['backend'] } = {};
+    const record = (u: TokenUsage) => {
+      total.inputTokens += u.inputTokens;
+      total.outputTokens += u.outputTokens;
+      last.model = u.model;
+      last.backend = u.backend;
+    };
+
+    const outlineText = await this.runCapture(
+      skillName, `${context}\n\n${buildPrdOutlineInstruction(MAX_PHASES)}`, previousArtifacts, signal, record,
+    );
+
+    const phases = parseOutline(outlineText);
+    if (phases.length === 0) {
+      console.warn('[StageExecutor] prd-architect: outline had no phases; using a single call');
+      return yield* this.executeSingle(skillName, context, previousArtifacts, signal);
+    }
+    if (phases.length > MAX_PHASES) {
+      throw new Error(`The PRD outline has ${phases.length} phases; the limit is ${MAX_PHASES}. Narrow the scope and rerun.`);
+    }
+    console.log(`[StageExecutor] prd-architect: outline has ${phases.length} phases; writing head, ${phases.length} phases and tail separately`);
+
+    const tasks: Array<() => Promise<string>> = [
+      () => this.runCapture(skillName, buildPrdHeadPrompt(context, outlineText), previousArtifacts, signal, record),
+      ...phases.map((phase) => async () => {
+        const text = await this.runCapture(
+          skillName, buildPrdPhasePrompt(context, outlineText, phase), previousArtifacts, signal, record,
+        );
+        return ensurePrdPhaseHeading(text, phase);
+      }),
+      () => this.runCapture(skillName, buildPrdTailPrompt(context, outlineText), previousArtifacts, signal, record),
+    ];
+    const parts = await runWithConcurrency(tasks, PHASE_CONCURRENCY, (task) => task());
+
+    const head = parts[0];
+    const tail = parts[parts.length - 1];
+    const merged = mergePrdParts(head, parts.slice(1, -1), tail);
     yield merged;
 
     this.lastUsage = {
