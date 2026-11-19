@@ -121,7 +121,7 @@ describe('StageExecutor phase-builder split', () => {
   it('leaves other skills as a single call', async () => {
     const { client, calls } = fakeClient(() => ({ text: 'PRD body' }))
     const executor = new StageExecutor(client as never)
-    const { yielded } = await drain(executor.executeStage('prd-architect', 'INPUT', []))
+    const { yielded } = await drain(executor.executeStage('prompt-builder', 'INPUT', []))
     expect(calls).toHaveLength(1)
     expect(yielded).toBe('PRD body')
   })
