@@ -66,6 +66,13 @@ describe('checkArtifactCompleteness', () => {
     expect(checkArtifactCompleteness(files).ok).toBe(true)
   })
 
+  it('fails when the output contains no files at all (a plan or a question instead of code)', () => {
+    const result = checkArtifactCompleteness([])
+    expect(result.ok).toBe(false)
+    expect(result.noFiles).toBe(true)
+    expect(completenessFeedback(result)).toContain('NO code files')
+  })
+
   it('builds feedback that names the cut-off file and the missing import', () => {
     const text = completenessFeedback({
       ok: false,
