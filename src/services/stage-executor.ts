@@ -22,6 +22,8 @@ import {
   mergePrdParts,
 } from '@/src/services/prd-split';
 
+import { isCodeBuildSkill, pipelineModeOverride } from '@/src/services/pipeline-mode';
+
 export class StageExecutor {
   private client: Anthropic;
 
@@ -189,7 +191,7 @@ export class StageExecutor {
     onUsage?: (u: TokenUsage) => void,
   ): AsyncGenerator<string, string, undefined> {
     this.lastUsage = null;
-    const systemPrompt = await SkillLoader.getSkillPromptAsync(skillName);
+    const systemPrompt = (await SkillLoader.getSkillPromptAsync(skillName)) + pipelineModeOverride(skillName);
 
     // Build messages: include previous artifacts as context
     const messages: Anthropic.MessageParam[] = [];
@@ -210,7 +212,7 @@ export class StageExecutor {
     const streamParams = {
       model: CLAUDE_MODELS.main,
       max_tokens: DOCUMENT_MAX_TOKENS,
-      output_config: { effort: EFFORT.document },
+      output_config: { effort: isCodeBuildSkill(skillName) ? EFFORT.build : EFFORT.document },
       system: systemPrompt,
       messages,
     };

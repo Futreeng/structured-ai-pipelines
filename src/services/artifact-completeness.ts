@@ -21,6 +21,8 @@ export interface CompletenessResult {
   ok: boolean;
   incompleteFiles: string[];
   missingImports: Array<{ from: string; spec: string }>;
+  /** The output contained no code files at all (the model wrote a plan or a question instead). */
+  noFiles?: boolean;
 }
 
 const CODE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
@@ -51,6 +53,7 @@ export function checkArtifactCompleteness(
   const known = new Set<string>([...projectPaths, ...files.map((f) => f.filePath)].map(normalizePath));
   const incompleteFiles = files.filter((f) => f.complete === false).map((f) => f.filePath);
   const missingImports: Array<{ from: string; spec: string }> = [];
+  const noFiles = files.length === 0;
 
   for (const file of files) {
     const from = normalizePath(file.filePath);
@@ -76,15 +79,22 @@ export function checkArtifactCompleteness(
   }
 
   return {
-    ok: incompleteFiles.length === 0 && missingImports.length === 0,
+    ok: !noFiles && incompleteFiles.length === 0 && missingImports.length === 0,
     incompleteFiles,
     missingImports,
+    noFiles,
   };
 }
 
 /** Feedback text sent back to the model when the check fails. */
 export function completenessFeedback(result: CompletenessResult): string {
   const lines: string[] = ['OUTPUT INCOMPLETE OR INCONSISTENT. Regenerate the full output and fix the following:'];
+  if (result.noFiles) {
+    lines.push(
+      '- Your output contained NO code files. Do not ask questions or describe a plan. ' +
+      'Write the complete code now: every file in full, in a code block with its path on the fence line (e.g. ```typescript:src/app.ts).',
+    );
+  }
   for (const f of result.incompleteFiles) {
     lines.push(`- File "${f}" was cut off before its closing code fence. Output the complete file.`);
   }

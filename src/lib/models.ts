@@ -27,6 +27,11 @@ export const EFFORT = {
    * so keep it minimal: a 16k cap at 'medium' effort cut a PRD off mid-document.
    */
   document: 'low',
+  /**
+   * Code-building stages. At 'low' effort the model is more likely to stop and check in
+   * instead of finishing, so these use 'medium' (Anthropic's starting point for agentic coding).
+   */
+  build: 'medium',
   /** Short structured answers (JSON votes, triage, checks). */
   quick: 'low',
 } as const satisfies Record<string, ClaudeEffort>;
