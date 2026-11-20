@@ -119,3 +119,30 @@ describe('limits', () => {
     expect(MAX_PHASES).toBe(10)
   })
 })
+
+describe('extractPhaseForPrompts', () => {
+  const artifact = [
+    '## Phase 0: Scaffold',
+    'scaffold body',
+    '## Phase 1: Engine',
+    'engine body line 1',
+    'engine body line 2',
+    '## Phase 2: UI',
+    'ui body',
+  ].join('\n')
+
+  it('keeps the heading list and only the requested phase body', async () => {
+    const { extractPhaseForPrompts } = await import('@/src/services/phase-split')
+    const out = extractPhaseForPrompts(artifact, 1)
+    expect(out).toContain('## Phase 0: Scaffold')
+    expect(out).toContain('## Phase 2: UI')
+    expect(out).toContain('engine body line 2')
+    expect(out).not.toContain('scaffold body')
+    expect(out).not.toContain('ui body')
+  })
+
+  it('returns the artifact unchanged when the phase is not found', async () => {
+    const { extractPhaseForPrompts } = await import('@/src/services/phase-split')
+    expect(extractPhaseForPrompts(artifact, 9)).toBe(artifact)
+  })
+})

@@ -93,3 +93,30 @@ export async function runWithConcurrency<T, R>(
   await Promise.all(workers);
   return results;
 }
+
+/**
+ * For a Prompts stage: keep the heading list of all phases (so cross-phase references
+ * still make sense) and the full text of only the phase being prompted. If the phase
+ * cannot be found, return the artifact unchanged.
+ */
+export function extractPhaseForPrompts(artifact: string, phaseIndex: number): string {
+  const lines = artifact.split('\n');
+  const blocks: Array<{ index: number; heading: string; body: string[] }> = [];
+  let current: { index: number; heading: string; body: string[] } | null = null;
+
+  for (const line of lines) {
+    const m = line.trim().match(HEADING_RE);
+    if (m) {
+      current = { index: parseInt(m[1], 10), heading: line.trim(), body: [line] };
+      blocks.push(current);
+    } else if (current) {
+      current.body.push(line);
+    }
+  }
+
+  const target = blocks.find((b) => b.index === phaseIndex);
+  if (!target || blocks.length < 2) return artifact;
+
+  const outline = blocks.map((b) => b.heading).join('\n');
+  return `## Phase outline (all phases, for reference)\n${outline}\n\n${target.body.join('\n').trim()}`;
+}
