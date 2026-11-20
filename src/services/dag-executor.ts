@@ -11,6 +11,8 @@ import { TraceLogger } from '@/src/services/trace-logger';
 import { AgentCoordinator } from '@/src/services/agent-coordinator';
 import { OutputValidator } from '@/src/services/output-validator';
 import { checkArtifactCompleteness, completenessFeedback } from '@/src/services/artifact-completeness';
+import { assertStageApprovable } from '@/src/services/stage-approval';
+import { extractPhaseForPrompts } from '@/src/services/phase-split';
 import { executionFeedback, executionGateEnabled, runExecutionGate } from '@/src/services/execution-gate';
 import { SecretScanner } from '@/src/services/secret-scanner';
 import { SentinelAgent } from '@/src/services/sentinel-agent';
@@ -445,10 +447,21 @@ export class DAGExecutor {
     );
 
     for (const stage of depStages) {
+      // A Prompts stage needs only its own phase from the phase list. Sending the whole
+      // list (in the context and again as a previous message) made these calls too big
+      // to finish inside the 300-second route limit.
+      let artifact = stage.artifactContent!;
+      if (
+        currentStage.skillName === 'prompt-builder' &&
+        stage.skillName === 'phase-builder' &&
+        currentStage.phaseIndex !== null
+      ) {
+        artifact = extractPhaseForPrompts(artifact, currentStage.phaseIndex);
+      }
       parts.push(
-        `## ${stage.displayName} (dependency)\n\n${stage.artifactContent}`
+        `## ${stage.displayName} (dependency)\n\n${artifact}`
       );
-      previousArtifacts.push(stage.artifactContent!);
+      previousArtifacts.push(artifact);
     }
 
     // Include user feedback if this is a re-run
@@ -1104,6 +1117,7 @@ export class DAGExecutor {
     });
 
     if (!stage) throw new Error(`Stage not found: ${stageId}`);
+    assertStageApprovable(stage, editedContent);
 
     const updateData: Record<string, unknown> = {
       status: 'approved',
