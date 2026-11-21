@@ -10,6 +10,7 @@ import { DockerfileGenerator } from '@/src/services/dockerfile-generator';
 import { CompletenessPass, detectProjectType } from '@/src/services/completeness-pass';
 import { CIGenerator } from '@/src/services/ci-generator';
 import { SBOMScanner } from '@/src/services/sbom-scanner';
+import { BUDGET_EXCEEDED_MARKER } from '@/src/services/stage-approval';
 import { CostGuard } from '@/src/services/cost-guard';
 import { LearningStore } from '@/src/services/learning-store';
 import { ValidationAgent } from '@/src/services/validation-agent';
@@ -101,7 +102,7 @@ export async function GET(
           where: { id: stage.id },
           data: {
             status: 'awaiting_approval',
-            artifactContent: `**Budget Exceeded**\n\n${budgetCheck.reason}\n\nApprove this stage to continue anyway, or cancel the run.`,
+            artifactContent: `${BUDGET_EXCEEDED_MARKER}\n\n${budgetCheck.reason}\n\nThis stage did not run, and the run cannot continue until it has. Raise the limit, then reject this stage to run it again, or cancel the run.`,
           },
         });
         const budgetStream = new ReadableStream({

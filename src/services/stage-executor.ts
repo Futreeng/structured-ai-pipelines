@@ -24,6 +24,23 @@ import {
 
 import { isCodeBuildSkill, pipelineModeOverride } from '@/src/services/pipeline-mode';
 
+/** Below this a shared prompt opening is not worth caching. */
+const MIN_CACHEABLE_CHARS = 8000;
+
+/** Groq and Ollama clients expect plain-string message content: flatten any text blocks. */
+function plainMessages(messages: Anthropic.MessageParam[]): Anthropic.MessageParam[] {
+  return messages.map((m) =>
+    typeof m.content === 'string'
+      ? m
+      : ({
+          role: m.role,
+          content: (m.content as Array<{ type: string; text?: string }>)
+            .map((block) => (block.type === 'text' ? block.text ?? '' : ''))
+            .join(''),
+        } as Anthropic.MessageParam),
+  );
+}
+
 export class StageExecutor {
   private client: Anthropic;
 
@@ -63,8 +80,10 @@ export class StageExecutor {
     };
 
     // 1. Outline. Not yielded: only the phase sections become the artifact.
+    // The outline call runs first and writes the prompt cache for the PRD; the per-phase
+    // calls below start with the same text and read it at a tenth of the price.
     const outlineGen = this.executeSingle(
-      skillName, `${context}\n\n${buildOutlineInstruction()}`, previousArtifacts, signal, record,
+      skillName, `${context}\n\n${buildOutlineInstruction()}`, previousArtifacts, signal, record, context,
     );
     let outlineText = '';
     for (;;) {
@@ -85,7 +104,7 @@ export class StageExecutor {
     // 2. One call per phase, a few at a time. Any failure fails the stage.
     const sections = await runWithConcurrency(phases, PHASE_CONCURRENCY, async (phase) => {
       const gen = this.executeSingle(
-        skillName, buildPhasePrompt(context, outlineText, phase), previousArtifacts, signal, record,
+        skillName, buildPhasePrompt(context, outlineText, phase), previousArtifacts, signal, record, context,
       );
       for (;;) {
         const r = await gen.next();
@@ -189,6 +208,7 @@ export class StageExecutor {
     previousArtifacts: string[],
     signal?: AbortSignal,
     onUsage?: (u: TokenUsage) => void,
+    sharedPrefix?: string,
   ): AsyncGenerator<string, string, undefined> {
     this.lastUsage = null;
     const systemPrompt = (await SkillLoader.getSkillPromptAsync(skillName)) + pipelineModeOverride(skillName);
@@ -196,15 +216,34 @@ export class StageExecutor {
     // Build messages: include previous artifacts as context
     const messages: Anthropic.MessageParam[] = [];
 
-    for (const artifact of previousArtifacts) {
+    // An earlier stage's output is usually already inside `context` (as the dependency
+    // text). Sending it again as its own message doubled the input of every call.
+    const priors = previousArtifacts.filter((artifact) => !context.includes(artifact));
+    for (const artifact of priors) {
       messages.push({ role: 'assistant', content: artifact });
       messages.push({ role: 'user', content: 'Proceed to the next stage.' });
     }
 
-    // Current stage input
-    messages.push({ role: 'user', content: context });
+    // Current stage input. When several calls share the same long opening (the PRD in the
+    // phase split), mark it cacheable so only the first call pays full price for it.
+    // Only the real Anthropic client gets content blocks; the Groq/Ollama fallbacks take strings.
+    const cacheable =
+      sharedPrefix !== undefined &&
+      sharedPrefix.length >= MIN_CACHEABLE_CHARS &&
+      context.length > sharedPrefix.length &&
+      context.startsWith(sharedPrefix) &&
+      this.client instanceof Anthropic;
+    messages.push({
+      role: 'user',
+      content: cacheable
+        ? [
+            { type: 'text', text: sharedPrefix as string, cache_control: { type: 'ephemeral' } },
+            { type: 'text', text: context.slice((sharedPrefix as string).length) },
+          ]
+        : context,
+    });
 
-    console.log(`[StageExecutor] Executing skill: ${skillName}, context length: ${context.length}, prior artifacts: ${previousArtifacts.length}`);
+    console.log(`[StageExecutor] Executing skill: ${skillName}, context length: ${context.length}, prior artifacts: ${priors.length} (${previousArtifacts.length - priors.length} already in context)${cacheable ? ', prompt cache on' : ''}`);
 
     let fullText = '';
     let usedOllama = false;
@@ -224,7 +263,7 @@ export class StageExecutor {
     } catch (err: unknown) {
       const fallback = await this.handleFallback(err);
       if (fallback) {
-        activeStream = fallback.messages.stream(streamParams);
+        activeStream = fallback.messages.stream({ ...streamParams, messages: plainMessages(messages) });
         usedOllama = true;
       } else {
         throw err;
@@ -245,7 +284,14 @@ export class StageExecutor {
       for await (const event of activeStream as AsyncIterable<{
         type: string;
         delta: { type: string; text: string };
-        message?: { usage?: { input_tokens: number; output_tokens: number } };
+        message?: {
+          usage?: {
+            input_tokens: number;
+            output_tokens: number;
+            cache_creation_input_tokens?: number | null;
+            cache_read_input_tokens?: number | null;
+          };
+        };
         usage?: { input_tokens?: number; output_tokens?: number };
       }>) {
         if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
@@ -255,7 +301,16 @@ export class StageExecutor {
         }
         // Capture usage from message_start event
         if (event.type === 'message_start' && event.message?.usage) {
-          inputTokens = event.message.usage.input_tokens || 0;
+          const u = event.message.usage;
+          const fresh = u.input_tokens || 0;
+          const written = u.cache_creation_input_tokens || 0;
+          const read = u.cache_read_input_tokens || 0;
+          // Cache writes cost 1.25x and cache reads 0.1x the normal input price. Count them as
+          // that many normal input tokens so the recorded cost and the run budget stay right.
+          inputTokens = Math.round(fresh + written * 1.25 + read * 0.1);
+          if (written || read) {
+            console.log(`[StageExecutor] prompt cache: ${read} read, ${written} written, ${fresh} uncached input tokens`);
+          }
         }
         // Capture usage from message_delta event (output tokens)
         if (event.type === 'message_delta' && event.usage) {
@@ -275,7 +330,7 @@ export class StageExecutor {
         if (fallback) {
           this.client = fallback as unknown as Anthropic;
           usedOllama = true;
-          const retryStream = fallback.messages.stream(streamParams);
+          const retryStream = fallback.messages.stream({ ...streamParams, messages: plainMessages(messages) });
           if (signal) {
             signal.addEventListener('abort', () => retryStream.abort());
           }
