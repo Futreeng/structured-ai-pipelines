@@ -104,7 +104,7 @@ export default defineConfig({
     configFiles.push({
       filePath: 'src/test/setup.ts',
       content: isReact
-        ? `import '@testing-library/jest-dom';
+        ? `import '@testing-library/jest-dom/vitest';
 `
         : `// Test setup file
 `,
@@ -138,6 +138,107 @@ export default defineConfig({
     return { files: testFiles, framework: 'vitest', configFiles };
   }
 
+  /**
+   * Source text of a value that satisfies a prop type, or null when the type is too
+   * complex to build one automatically (custom interfaces, generics, ...).
+   */
+  static sampleValueForType(rawType: string): string | null {
+    const type = rawType.trim().replace(/;$/, '').trim();
+    if (type === 'string') return "''";
+    if (type === 'number') return '0';
+    if (type === 'boolean') return 'false';
+    if (type === 'null' || type === 'undefined') return type;
+    if (/^(React\.)?ReactNode$/.test(type)) return 'null';
+    if (/^['"][^'"]*['"]$/.test(type)) return type;
+    if (type.includes('=>')) return '() => {}';
+    if (/\[\]$/.test(type) || /^Array<.+>$/.test(type)) return '[]';
+    if (/^Record<.+>$/.test(type)) return '{}';
+    if (type.includes('|')) {
+      const parts = type.split('|').map((p) => p.trim());
+      if (parts.includes('null')) return 'null';
+      if (parts.every((p) => /^['"][^'"]*['"]$/.test(p))) return parts[0];
+    }
+    return null;
+  }
+
+  /**
+   * Required props of a component, read from the props interface/type in its own file.
+   * Returns null when they cannot be determined, [] when the component takes none.
+   */
+  static requiredProps(content: string, componentName: string): Array<{ name: string; type: string }> | null {
+    const signature = content.match(
+      new RegExp(`(?:function\\s+${componentName}|const\\s+${componentName}\\s*(?::[^=]+)?=\\s*(?:async\\s*)?)\\s*\\(([^)]*)\\)`),
+    );
+    if (!signature) return null;
+    const params = signature[1].trim();
+    if (params === '') return [];
+
+    const typeName = params.match(/:\s*([A-Za-z_]\w*)\s*$/)?.[1];
+    if (!typeName) return null;
+    const body =
+      // Props with no nested braces, on one line or several (cannot run past the closing brace)
+      content.match(new RegExp(`(?:interface\\s+${typeName}\\s*|type\\s+${typeName}\\s*=\\s*)\\{([^{}]*)\\}`))?.[1] ??
+      // Props containing nested braces: read up to the closing brace on its own line
+      content.match(new RegExp(`interface\\s+${typeName}\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1] ??
+      content.match(new RegExp(`type\\s+${typeName}\\s*=\\s*\\{([\\s\\S]*?)\\n\\}`))?.[1];
+    if (body === undefined) return null;
+
+    const props: Array<{ name: string; type: string }> = [];
+    // A prop type that itself contains ";" (an inline object type) splits into a fragment that
+    // cannot be built, so the whole component safely falls back to the "module loads" test.
+    for (const line of body.split(/\n|;/)) {
+      const m = line.match(/^\s*(\w+)(\?)?\s*:\s*(.+?)\s*;?\s*$/);
+      if (!m || line.trim().startsWith('//') || line.trim().startsWith('*')) continue;
+      if (m[2]) continue; // optional prop
+      props.push({ name: m[1], type: m[3] });
+    }
+    return props;
+  }
+
+  /**
+   * A component test that type-checks (no unused imports, all required props passed).
+   * If props cannot be generated, it only checks that the component module loads.
+   */
+  static componentTest(componentName: string, relativePath: string, content: string): string {
+    const required = TestGenerator.requiredProps(content, componentName);
+    const samples = required?.map((p) => ({ ...p, value: TestGenerator.sampleValueForType(p.type) }));
+
+    if (!samples || samples.some((p) => p.value === null)) {
+      return `import { describe, it, expect } from 'vitest';
+import ${componentName} from '${relativePath}';
+
+// Props could not be generated automatically, so this only checks that the component loads.
+describe('${componentName}', () => {
+  it('exports a component', () => {
+    expect(typeof ${componentName}).toBe('function');
+  });
+});
+`;
+    }
+
+    const propsDecl = samples.length > 0
+      ? `\nconst props = { ${samples.map((p) => `${p.name}: ${p.value}`).join(', ')} };\n`
+      : '';
+    const element = samples.length > 0 ? `<${componentName} {...props} />` : `<${componentName} />`;
+    const rendersNothing = /return\s+null\s*;?/.test(content);
+
+    return `import { render } from '@testing-library/react';
+import { describe, it, expect } from 'vitest';
+import ${componentName} from '${relativePath}';
+${propsDecl}
+describe('${componentName}', () => {
+  it('renders without crashing', () => {
+    render(${element});
+  });
+${rendersNothing ? '' : `
+  it('renders into the document', () => {
+    const { container } = render(${element});
+    expect(container.firstChild).toBeInTheDocument();
+  });
+`}});
+`;
+  }
+
   private static generateNodeTest(
     file: { filePath: string; content: string },
     isReact: boolean
@@ -161,22 +262,7 @@ export default defineConfig({
     let testContent = '';
 
     if (isComponent && isReact && defaultExport) {
-      const componentName = defaultExport[1];
-      testContent = `import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
-import ${componentName} from '${relativePath}';
-
-describe('${componentName}', () => {
-  it('renders without crashing', () => {
-    render(<${componentName} />);
-  });
-
-  it('is visible in the document', () => {
-    const { container } = render(<${componentName} />);
-    expect(container.firstChild).toBeInTheDocument();
-  });
-});
-`;
+      testContent = TestGenerator.componentTest(defaultExport[1], relativePath, content);
     } else if (isHook && defaultExport) {
       const hookName = defaultExport[1];
       testContent = `import { renderHook } from '@testing-library/react';

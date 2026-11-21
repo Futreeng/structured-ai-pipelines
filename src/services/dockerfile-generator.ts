@@ -114,6 +114,8 @@ export class DockerfileGenerator {
   ): DockerFile[] {
     const files: DockerFile[] = [];
     const pkgFile = projectFiles.find((f) => f.filePath === 'package.json');
+    // `npm ci` refuses to run without a package-lock.json, and generated projects have none.
+    const installCmd = projectFiles.some((f) => f.filePath === 'package-lock.json') ? 'npm ci' : 'npm install';
     let hasBuildScript = false;
     let hasStartScript = false;
     let startCommand = 'node dist/index.js';
@@ -141,17 +143,17 @@ export class DockerfileGenerator {
       files.push({
         filePath: 'Dockerfile',
         content: `# Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:24-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN ${installCmd}
 COPY . .
 RUN npm run build
 
 # Stage 2: Serve
 FROM nginx:alpine
 COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf 2>/dev/null || true
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE ${port}
 CMD ["nginx", "-g", "daemon off;"]
 `,
@@ -180,13 +182,13 @@ CMD ["nginx", "-g", "daemon off;"]
       // Server-side Node app
       files.push({
         filePath: 'Dockerfile',
-        content: `FROM node:20-slim AS builder
+        content: `FROM node:24-slim AS builder
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN ${installCmd}
 COPY . .
 ${hasBuildScript ? 'RUN npm run build\n' : ''}
-FROM node:20-slim
+FROM node:24-slim
 WORKDIR /app
 COPY --from=builder /app .
 ${hasBuildScript ? '' : '# No build step detected\n'}ENV NODE_ENV=production

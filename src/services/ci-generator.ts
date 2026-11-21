@@ -65,6 +65,8 @@ export class CIGenerator {
       } catch { /* ignore */ }
     }
     const hasDockerfile = projectFiles.some((f) => f.filePath === 'Dockerfile');
+    // `npm ci` and setup-node's `cache: npm` both need a package-lock.json, which generated projects lack.
+    const hasLockfile = projectFiles.some((f) => f.filePath === 'package-lock.json');
 
     let workflow = `name: CI
 
@@ -79,16 +81,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '24'${hasLockfile ? "\n          cache: 'npm'" : ''}
 
       - name: Install dependencies
-        run: npm ci
+        run: ${hasLockfile ? 'npm ci' : 'npm install'}
 `;
 
     if (hasLint) {
@@ -120,7 +121,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -165,10 +166,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'pip'
@@ -212,7 +213,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -251,7 +252,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Validate HTML
         uses: nicferrier/htmllint-action@v1
