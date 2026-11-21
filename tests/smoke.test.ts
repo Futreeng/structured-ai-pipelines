@@ -596,7 +596,10 @@ describe('CI Generator', () => {
     expect(result.files.length).toBe(1);
     expect(result.files[0].filePath).toBe('.github/workflows/ci.yml');
     expect(result.files[0].content).toContain('actions/checkout');
-    expect(result.files[0].content).toContain('npm ci');
+    // The generated project has no package-lock.json, and `npm ci` fails without one.
+    expect(files.some((f) => f.filePath === 'package-lock.json')).toBe(false);
+    expect(result.files[0].content).toContain('npm install');
+    expect(result.files[0].content).not.toContain('npm ci');
   });
 });
 
